@@ -2,8 +2,6 @@ package library;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -13,7 +11,8 @@ import java.util.UUID;
 public abstract class ReaderType {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "uuid2")
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -22,8 +21,6 @@ public abstract class ReaderType {
     @Column(nullable = false)
     protected int maxBooks;
 
-    @OneToMany(mappedBy = "readerType", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BookAllowedReaderType> allowedBooks = new ArrayList<>();
 
     public ReaderType() {}
 
@@ -35,5 +32,4 @@ public abstract class ReaderType {
     public UUID getId() { return id; }
     public String getName() { return name; }
     public int getMaxBooks() { return maxBooks; }
-    public List<BookAllowedReaderType> getAllowedBooks() { return allowedBooks; }
 }

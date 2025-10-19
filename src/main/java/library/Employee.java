@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 
 @Entity
-@Table(name = "employees")
+@Table(name = "Employees")
 public class Employee extends Person {
     private String position;
     private double salary;
@@ -16,9 +16,9 @@ public class Employee extends Person {
         super();
     }
 
-    public Employee(String name, String surname, String email, String phone, Address address,
-                    String position, double salary, LocalDate hireDate) {
-        super(name, surname, email, phone, address);
+    public Employee(String name, String surname, String email, String phone, Address address
+                    ,Library library,String position, double salary, LocalDate hireDate) {
+        super(name, surname, email, phone, address, library);
         this.position = position;
         this.salary = salary;
         this.hireDate = hireDate;

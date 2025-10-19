@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "libraries")
+@Table(name = "Libraries")
 public class Library {
 
     @Id
@@ -24,14 +24,9 @@ public class Library {
     private String email;
     private String website;
 
-    @OneToMany(mappedBy = "libraryId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "library", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BookCopy> bookCopies;
 
-    @OneToMany(mappedBy = "libraryId", cascade = CascadeType.ALL)
-    private List<Employee> staff;
-
-    @OneToMany(mappedBy = "libraryId", cascade = CascadeType.ALL)
-    private List<Reader> members;
 
     private boolean openOnWeekends;
     private String openingHours;
@@ -44,10 +39,12 @@ public class Library {
         this.email = email;
         this.website = website;
         this.bookCopies = new ArrayList<BookCopy>();
-        this.staff = new ArrayList<Employee>();
-        this.members = new ArrayList<Reader>();
         this.openOnWeekends = openOnWeekends;
         this.openingHours = openingHours;
+    }
+
+    public Library() {
+
     }
 
     public UUID getId() {
@@ -102,22 +99,6 @@ public class Library {
         this.bookCopies = bookCopies;
     }
 
-    public List<Employee> getStaff() {
-        return staff;
-    }
-
-    public void setStaff(List<Employee> staff) {
-        this.staff = staff;
-    }
-
-    public List<Reader> getMembers() {
-        return members;
-    }
-
-    public void setMembers(List<Reader> members) {
-        this.members = members;
-    }
-
     public boolean isOpenOnWeekends() {
         return openOnWeekends;
     }
@@ -134,6 +115,7 @@ public class Library {
         this.openingHours = openingHours;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -142,17 +124,17 @@ public class Library {
 
         Library library = (Library) o;
 
-        return new EqualsBuilder().append(isOpenOnWeekends(), library.isOpenOnWeekends()).append(getId(), library.getId()).append(getName(), library.getName()).append(getAddress(), library.getAddress()).append(getPhoneNumber(), library.getPhoneNumber()).append(getEmail(), library.getEmail()).append(getWebsite(), library.getWebsite()).append(getBookCopies(), library.getBookCopies()).append(getStaff(), library.getStaff()).append(getMembers(), library.getMembers()).append(getOpeningHours(), library.getOpeningHours()).isEquals();
+        return new EqualsBuilder().append(isOpenOnWeekends(), library.isOpenOnWeekends()).append(getId(), library.getId()).append(getName(), library.getName()).append(getAddress(), library.getAddress()).append(getPhoneNumber(), library.getPhoneNumber()).append(getEmail(), library.getEmail()).append(getWebsite(), library.getWebsite()).append(getBookCopies(), library.getBookCopies()).append(getOpeningHours(), library.getOpeningHours()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getAddress()).append(getPhoneNumber()).append(getEmail()).append(getWebsite()).append(getBookCopies()).append(getStaff()).append(getMembers()).append(isOpenOnWeekends()).append(getOpeningHours()).toHashCode();
+        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getAddress()).append(getPhoneNumber()).append(getEmail()).append(getWebsite()).append(getBookCopies()).append(isOpenOnWeekends()).append(getOpeningHours()).toHashCode();
     }
 
     @Override
     public String toString() {
-        return "library.Library{" +
+        return "Library{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", address=" + address +
@@ -160,8 +142,6 @@ public class Library {
                 ", email='" + email + '\'' +
                 ", website='" + website + '\'' +
                 ", bookCopies=" + bookCopies +
-                ", staff=" + staff +
-                ", members=" + members +
                 ", openOnWeekends=" + openOnWeekends +
                 ", openingHours='" + openingHours + '\'' +
                 '}';

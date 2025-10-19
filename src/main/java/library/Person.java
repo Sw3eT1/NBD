@@ -11,26 +11,40 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public abstract class Person {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "uuid2")
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
+    @Column (nullable = false)
     private String name;
+
+    @Column (nullable = false)
     private String surname;
+
+    @Column(nullable = false, unique = true)
+    @jakarta.validation.constraints.Email
     private String email;
+
+    @Column(nullable = false, unique = true)
     private String phone;
 
     @Embedded
     private Address address;
 
+    @ManyToOne
+    @JoinColumn(name = "library_id", nullable = false)
+    private Library library;
+
     protected Person() {
     }
 
-    protected Person(String name, String surname, String email, String phone, Address address) {
+    protected Person(String name, String surname, String email, String phone, Address address, Library library) {
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.phone = phone;
         this.address = address;
+        this.library = library;
     }
 
     public UUID getId() { return id; }
@@ -50,42 +64,35 @@ public abstract class Person {
     public Address getAddress() { return address; }
     public void setAddress(Address address) { this.address = address; }
 
+    public Library getLibrary() { return library; }
+    public void setLibrary(Library library) { this.library = library; }
+
     @Override
     public String toString() {
-        return "library.Person{" +
+        return "Person{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 ", address=" + address +
+                ", library=" + library +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Person person)) return false;
 
-        return new EqualsBuilder()
-                .append(getId(), person.getId())
-                .append(getName(), person.getName())
-                .append(getSurname(), person.getSurname())
-                .append(getEmail(), person.getEmail())
-                .append(getPhone(), person.getPhone())
-                .append(getAddress(), person.getAddress())
-                .isEquals();
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Person person = (Person) o;
+
+        return new EqualsBuilder().append(getId(), person.getId()).append(getName(), person.getName()).append(getSurname(), person.getSurname()).append(getEmail(), person.getEmail()).append(getPhone(), person.getPhone()).append(getAddress(), person.getAddress()).append(getLibrary(), person.getLibrary()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(getId())
-                .append(getName())
-                .append(getSurname())
-                .append(getEmail())
-                .append(getPhone())
-                .append(getAddress())
-                .toHashCode();
+        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getSurname()).append(getEmail()).append(getPhone()).append(getAddress()).append(getLibrary()).toHashCode();
     }
 }

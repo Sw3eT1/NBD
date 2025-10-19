@@ -1,9 +1,6 @@
 package library;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -12,8 +9,10 @@ import java.util.UUID;
 @Embeddable
 public class Address {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
+
     private String houseNumber;
     private String street;
     private String city;

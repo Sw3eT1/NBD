@@ -11,7 +11,8 @@ import java.util.UUID;
 public class BookAllowedReaderType {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne
@@ -21,9 +22,6 @@ public class BookAllowedReaderType {
     @ManyToOne
     @JoinColumn(name = "reader_type_id")
     private ReaderType readerType;
-
-    // opcjonalnie np. dodatkowe pole
-    // private boolean isDefault = true;
 
     public BookAllowedReaderType() {}
     public BookAllowedReaderType(Book book, ReaderType readerType) {
@@ -38,6 +36,11 @@ public class BookAllowedReaderType {
     public Book getBook() {
         return book;
     }
+
+    public void setBook(Book book) {
+        this.book = book;
+    }
+
 
     public ReaderType getReaderType() {
         return readerType;

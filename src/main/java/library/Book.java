@@ -5,39 +5,43 @@ import library.enums.BookGenre;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.awt.*;
-import java.util.ArrayList;
+
+import java.util.Objects;
 import java.util.UUID;
 
 
 @Entity
-@Table(name = "books")
+@Table(name = "Books")
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
+
+    @Column(name = "title",  nullable = false)
     private String title;
+
+    @Column(name = "author",  nullable = false)
     private String author;
+
+
     private String publisher;
 
     @Enumerated(EnumType.STRING)
     private BookGenre genre;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BookAllowedReaderType> allowedReaderTypes;
-
-
+    @Column(name = "isbn",  nullable = false)
     private String isbn;
+
     private int publicationYear;
     private int pages;
     private String language;
     private String description;
 
     public Book(String title, String author, String isbn) {
-        this.title = title;
-        this.author = author;
-        this.isbn = isbn;
-        this.allowedReaderTypes = new ArrayList<>();
+        this.title = Objects.requireNonNull(title);
+        this.author = Objects.requireNonNull(author);
+        this.isbn = Objects.requireNonNull(isbn);
     }
 
     public Book() {
@@ -121,6 +125,22 @@ public class Book {
     }
 
     @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", publisher='" + publisher + '\'' +
+                ", genre=" + genre +
+                ", isbn='" + isbn + '\'' +
+                ", publicationYear=" + publicationYear +
+                ", pages=" + pages +
+                ", language='" + language + '\'' +
+                ", description='" + description + '\'' +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
 
@@ -134,21 +154,5 @@ public class Book {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37).append(getId()).append(getTitle()).append(getAuthor()).append(getPublisher()).append(getGenre()).append(getIsbn()).append(getPublicationYear()).append(getPages()).append(getLanguage()).append(getDescription()).toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "library.Book{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", author='" + author + '\'' +
-                ", publisher='" + publisher + '\'' +
-                ", genre=" + genre +
-                ", isbn='" + isbn + '\'' +
-                ", publicationYear=" + publicationYear +
-                ", pages=" + pages +
-                ", language='" + language + '\'' +
-                ", description='" + description + '\'' +
-                '}';
     }
 }

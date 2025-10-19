@@ -1,6 +1,7 @@
 package library;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import library.enums.RentalStatus;
 
 import java.time.LocalDate;
@@ -8,18 +9,35 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "rentals")
+@Table(name = "Rentals")
 
 public class Rental {
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
+
+    @NotNull
+    @Column(name= "rented_by", nullable = false)
     private UUID readerId;
+
+    @NotNull
+    @Column(name= "rented_book", nullable = false)
     private UUID bookId;
+
+    @NotNull
+    @Column(name= "rented_in", nullable = false)
     private UUID libraryId;
 
+
+    @NotNull
+    @Column(name= "rental_start", nullable = false)
     private LocalDate rentalDate;
+
+    @NotNull
+    @Column(name= "rental_end", nullable = false)
     private LocalDate dueDate;
+
     private LocalDate returnDate;
 
     @Enumerated(EnumType.STRING)
@@ -66,7 +84,6 @@ public class Rental {
     public void setStatus(RentalStatus status) { this.status = status; }
 
     public double getFine() { return fine; }
-    public void setFine(double fine) { this.fine = fine; }
 
     @Override
     public String toString() {

@@ -10,7 +10,8 @@ import java.util.UUID;
 @Table(name = "book_copies")
 public class BookCopy {
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne
