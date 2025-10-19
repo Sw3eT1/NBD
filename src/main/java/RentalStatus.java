@@ -1,5 +1,9 @@
 public enum RentalStatus {
     ACTIVE,
     RETURNED,
-    OVERDUE
+    OVERDUE;
+
+    RentalStatus() {
+
+    }
 }

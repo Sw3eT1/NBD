@@ -7,18 +7,17 @@ public class Rental {
     private UUID bookId;
     private UUID libraryId;
 
-    private LocalDate rentalDate;       // data wypożyczenia
-    private LocalDate dueDate;          // termin zwrotu
-    private LocalDate returnDate;       // faktyczny zwrot (może być null)
-    private RentalStatus status;        // enum: ACTIVE, RETURNED, OVERDUE
-    private double fine;                // kara za przetrzymanie
+    private LocalDate rentalDate;
+    private LocalDate dueDate;
+    private LocalDate returnDate;
+    private RentalStatus status;
+    private double fine;
 
     public Rental() {
     }
 
-    public Rental(UUID id, UUID readerId, UUID bookId, UUID libraryId,
+    public Rental(UUID readerId, UUID bookId, UUID libraryId,
                   LocalDate rentalDate, LocalDate dueDate) {
-        this.id = id;
         this.readerId = readerId;
         this.bookId = bookId;
         this.libraryId = libraryId;

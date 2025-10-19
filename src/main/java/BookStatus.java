@@ -1,5 +1,9 @@
 public enum BookStatus {
     AVAILABLE,
     RENTED,
-    RESERVED
+    RESERVED;
+
+    BookStatus(){
+
+    }
 }

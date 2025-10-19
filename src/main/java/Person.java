@@ -14,8 +14,7 @@ public abstract class Person {
     protected Person() {
     }
 
-    protected Person(UUID id, String name, String surname, String email, String phone, Address address) {
-        this.id = id;
+    protected Person(String name, String surname, String email, String phone, Address address) {
         this.name = name;
         this.surname = surname;
         this.email = email;
@@ -24,7 +23,6 @@ public abstract class Person {
     }
 
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

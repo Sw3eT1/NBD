@@ -14,7 +14,6 @@ public class Address {
 
 
     public Address(String houseNumber, String street, String city, String state, String zipcode, String country) {
-        this.id = UUID.randomUUID();
         this.houseNumber = houseNumber;
         this.street = street;
         this.city = city;

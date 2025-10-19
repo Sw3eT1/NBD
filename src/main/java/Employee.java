@@ -10,9 +10,9 @@ public class Employee extends Person {
         super();
     }
 
-    public Employee(UUID id, String name, String surname, String email, String phone, Address address,
+    public Employee(String name, String surname, String email, String phone, Address address,
                     String position, double salary, LocalDate hireDate) {
-        super(id, name, surname, email, phone, address);
+        super(name, surname, email, phone, address);
         this.position = position;
         this.salary = salary;
         this.hireDate = hireDate;

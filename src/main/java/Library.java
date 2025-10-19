@@ -21,9 +21,8 @@ public class Library {
     private boolean openOnWeekends;
     private String openingHours;
 
-    public Library(UUID id, String name, Address address, String phoneNumber, String email,
+    public Library(String name, Address address, String phoneNumber, String email,
                    String website,boolean openOnWeekends, String openingHours) {
-        this.id = UUID.randomUUID();
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
@@ -39,7 +38,6 @@ public class Library {
     public UUID getId() {
         return id;
     }
-
 
     public String getName() {
         return name;

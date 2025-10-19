@@ -5,7 +5,6 @@ public abstract class ReaderType {
     String name;
 
     public ReaderType() {
-        this.id = UUID.randomUUID();
     }
 
     public UUID getId() {

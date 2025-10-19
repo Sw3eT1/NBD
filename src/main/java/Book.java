@@ -16,8 +16,7 @@ public class Book {
     private String language;
     private String description;
 
-    public Book(UUID id, String title, String author, String isbn) {
-        this.id = id;
+    public Book(String title, String author, String isbn) {
         this.title = title;
         this.author = author;
         this.isbn = isbn;
@@ -25,10 +24,6 @@ public class Book {
 
     public UUID getId() {
         return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public String getTitle() {

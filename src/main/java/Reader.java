@@ -12,9 +12,9 @@ public class Reader extends Person {
         this.rentals = new ArrayList<>();
     }
 
-    public Reader(UUID id, String name, String surname, String email, String phone, Address address,
+    public Reader(String name, String surname, String email, String phone, Address address,
                   String cardNumber, ReaderType readerType) {
-        super(id, name, surname, email, phone, address);
+        super(name, surname, email, phone, address);
         this.cardNumber = cardNumber;
         this.readerType = readerType;
         this.rentals = new ArrayList<>();

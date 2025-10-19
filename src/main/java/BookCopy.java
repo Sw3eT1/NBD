@@ -6,8 +6,7 @@ public class BookCopy {
     private UUID libraryId;
     private BookStatus status;
 
-    public BookCopy(UUID id, Book book, UUID libraryId) {
-        this.id = id;
+    public BookCopy(Book book, UUID libraryId) {
         this.book = book;
         this.libraryId = libraryId;
         this.status = BookStatus.AVAILABLE;
