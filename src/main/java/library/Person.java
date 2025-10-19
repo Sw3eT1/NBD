@@ -1,14 +1,25 @@
+package library;
+
+import jakarta.persistence.*;
+import java.util.UUID;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.UUID;
 
+@MappedSuperclass
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Person {
+
+    @Id
+    @GeneratedValue
     private UUID id;
+
     private String name;
     private String surname;
     private String email;
     private String phone;
+
+    @Embedded
     private Address address;
 
     protected Person() {
@@ -41,7 +52,7 @@ public abstract class Person {
 
     @Override
     public String toString() {
-        return "Person{" +
+        return "library.Person{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +

@@ -1,10 +1,22 @@
+package library;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
+
+@Entity
+@Table(name = "readers")
 public class Reader extends Person {
     private String cardNumber;
+
+    @OneToMany(mappedBy = "readerId", cascade = CascadeType.ALL)
     private List<Rental> rentals;
+
     private ReaderType readerType;
 
     public Reader() {
@@ -31,7 +43,7 @@ public class Reader extends Person {
 
     @Override
     public String toString() {
-        return "Reader{" +
+        return "library.Reader{" +
                 "id=" + getId() +
                 ", name='" + getName() + '\'' +
                 ", surname='" + getSurname() + '\'' +

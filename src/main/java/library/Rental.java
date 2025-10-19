@@ -1,7 +1,18 @@
+package library;
+
+import jakarta.persistence.*;
+import library.enums.RentalStatus;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
+
+@Entity
+@Table(name = "rentals")
+
 public class Rental {
+    @Id
+    @GeneratedValue
     private UUID id;
     private UUID readerId;
     private UUID bookId;
@@ -10,7 +21,10 @@ public class Rental {
     private LocalDate rentalDate;
     private LocalDate dueDate;
     private LocalDate returnDate;
+
+    @Enumerated(EnumType.STRING)
     private RentalStatus status;
+
     private double fine;
 
     public Rental() {
@@ -56,7 +70,7 @@ public class Rental {
 
     @Override
     public String toString() {
-        return "Rental{" +
+        return "library.Rental{" +
                 "id=" + id +
                 ", readerId=" + readerId +
                 ", bookId=" + bookId +

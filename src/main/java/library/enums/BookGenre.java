@@ -1,3 +1,5 @@
+package library.enums;
+
 public enum BookGenre {
     FANTASY,
     SCIENCE_FICTION,

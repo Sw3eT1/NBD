@@ -6,9 +6,16 @@
   <persistence-unit name="LibraryUnit" transaction-type="RESOURCE_LOCAL">
       <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-      <class>Address</class>
-      <class>Book</class>
-      <class>BookCopy</class>
+      <!-- Encje -->
+      <class>library.Book</class>
+      <class>library.BookCopy</class>
+      <class>library.Employee</class>
+      <class>library.Reader</class>
+      <class>library.Library</class>
+      <class>library.Rental</class>
+
+      <!-- Embeddables -->
+      <class>library.Address</class>
 
       <properties>
           <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>

@@ -1,9 +1,18 @@
+package library;
+
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.UUID;
 
+@Embeddable
 public class Address {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
     private String houseNumber;
     private String street;
@@ -12,7 +21,9 @@ public class Address {
     private String zipcode;
     private String country;
 
+    public Address() {
 
+    }
     public Address(String houseNumber, String street, String city, String state, String zipcode, String country) {
         this.houseNumber = houseNumber;
         this.street = street;
@@ -77,7 +88,7 @@ public class Address {
 
     @Override
     public String toString() {
-        return "Address{" +
+        return "library.Address{" +
                 "houseNumber='" + houseNumber + '\'' +
                 ", street='" + street + '\'' +
                 ", city='" + city + '\'' +

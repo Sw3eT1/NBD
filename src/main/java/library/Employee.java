@@ -1,6 +1,12 @@
-import java.time.LocalDate;
-import java.util.UUID;
+package library;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import java.time.LocalDate;
+
+
+@Entity
+@Table(name = "employees")
 public class Employee extends Person {
     private String position;
     private double salary;
@@ -29,7 +35,7 @@ public class Employee extends Person {
 
     @Override
     public String toString() {
-        return "Employee{" +
+        return "library.Employee{" +
                 "id=" + getId() +
                 ", name='" + getName() + '\'' +
                 ", surname='" + getSurname() + '\'' +

@@ -1,14 +1,31 @@
+package library;
+
+import jakarta.persistence.*;
+import library.enums.BookGenre;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.UUID;
 
+
+@Entity
+@Table(name = "books")
 public class Book {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
     private String title;
     private String author;
     private String publisher;
+
+    @Enumerated(EnumType.STRING)
     private BookGenre genre;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookAllowedReaderType> allowedReaderTypes;
+
 
     private String isbn;
     private int publicationYear;
@@ -20,6 +37,11 @@ public class Book {
         this.title = title;
         this.author = author;
         this.isbn = isbn;
+        this.allowedReaderTypes = new ArrayList<>();
+    }
+
+    public Book() {
+
     }
 
     public UUID getId() {
@@ -116,7 +138,7 @@ public class Book {
 
     @Override
     public String toString() {
-        return "Book{" +
+        return "library.Book{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +

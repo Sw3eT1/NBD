@@ -1,3 +1,7 @@
+import library.ReaderType;
+import library.ReaderTypeAdult;
+import library.ReaderTypeKid;
+import library.ReaderTypeTeenager;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

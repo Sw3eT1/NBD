@@ -1,3 +1,6 @@
+package library;
+
+import jakarta.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -5,17 +8,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
+@Table(name = "libraries")
 public class Library {
+
+    @Id
+    @GeneratedValue
     private UUID id;
     private String name;
+
+    @Embedded
     private Address address;
 
     private String phoneNumber;
     private String email;
     private String website;
 
+    @OneToMany(mappedBy = "libraryId", cascade = CascadeType.ALL)
     private List<BookCopy> bookCopies;
+
+    @OneToMany(mappedBy = "libraryId", cascade = CascadeType.ALL)
     private List<Employee> staff;
+
+    @OneToMany(mappedBy = "libraryId", cascade = CascadeType.ALL)
     private List<Reader> members;
 
     private boolean openOnWeekends;
@@ -137,7 +152,7 @@ public class Library {
 
     @Override
     public String toString() {
-        return "Library{" +
+        return "library.Library{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", address=" + address +
