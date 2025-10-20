@@ -1,16 +1,34 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  db:
-    image: postgres
-    restart: always
+  postgres:
+    image: postgres:16
+    container_name: nbd_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: nbddb
       POSTGRES_USER: nbd
       POSTGRES_PASSWORD: nbdpassword
+      POSTGRES_DB: nbddb
     ports:
       - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nbd -d nbddb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  tests:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: nbd_tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
     volumes:
-      - pg:/var/lib/postgresql/data
-volumes:
-  pg:
+      - ./:/app
+    command: >
+      bash -c "
+        echo 'Waiting for PostgreSQL...' &&
+        sleep 5 &&
+        echo 'Running tests from Maven...' &&
+        mvn clean test
+      "

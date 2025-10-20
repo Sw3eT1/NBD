@@ -19,20 +19,27 @@
         <class>myLibrary.ReaderTypeAdult</class>
         <class>myLibrary.ReaderTypeKid</class>
         <class>myLibrary.ReaderTypeTeenager</class>
-
-        <!-- Embeddables -->
         <class>myLibrary.Address</class>
 
         <properties>
+            <!-- Połączenie do Postgresa -->
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5433/nbddb"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://postgres:5432/nbddb"/>
             <property name="jakarta.persistence.jdbc.user" value="nbd"/>
             <property name="jakarta.persistence.jdbc.password" value="nbdpassword"/>
 
+            <!-- Hibernate -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
+
+            <!-- Wyciszenie logów SQL -->
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.format_sql" value="false"/>
+            <property name="hibernate.use_sql_comments" value="false"/>
+
+            <!-- Ograniczenie zbędnych ostrzeżeń -->
+            <property name="hibernate.jdbc.log.warnings" value="false"/>
+            <property name="hibernate.jdbc.batch_versioned_data" value="false"/>
         </properties>
     </persistence-unit>
 </persistence>
