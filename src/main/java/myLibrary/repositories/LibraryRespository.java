@@ -1,8 +1,7 @@
-package library.repositories;
+package myLibrary.repositories;
 
 import jakarta.persistence.EntityManager;
-import library.Library;
-import library.Rental;
+import myLibrary.Library;
 
 import java.util.List;
 import java.util.UUID;
@@ -60,18 +59,10 @@ public class LibraryRespository implements Repository<Library> {
                 .getResultList();
     }
 
-    public List<Library> findByStaff(UUID employeeId) {
-        return em.createQuery("SELECT l FROM Library l JOIN l.staff s WHERE s.id = :employeeId", Library.class)
-                .setParameter("employeeId", employeeId)
-                .getResultList();
-    }
-
     public List<Library> findByBookCopy(UUID bookId) {
         return em.createQuery("SELECT l FROM Library l JOIN l.bookCopies bc WHERE bc.book.id = :bookId", Library.class)
                 .setParameter("bookId", bookId)
                 .getResultList();
     }
-
-
 
 }

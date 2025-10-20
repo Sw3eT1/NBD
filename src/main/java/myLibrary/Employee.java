@@ -1,7 +1,10 @@
-package library;
+package myLibrary;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.time.LocalDate;
 
 
@@ -33,18 +36,29 @@ public class Employee extends Person {
     public LocalDate getHireDate() { return hireDate; }
     public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }
 
+
     @Override
     public String toString() {
-        return "library.Employee{" +
-                "id=" + getId() +
-                ", name='" + getName() + '\'' +
-                ", surname='" + getSurname() + '\'' +
-                ", email='" + getEmail() + '\'' +
-                ", phone='" + getPhone() + '\'' +
-                ", address=" + getAddress() +
-                ", position='" + position + '\'' +
+        return "Employee{" +
+                "position='" + position + '\'' +
                 ", salary=" + salary +
                 ", hireDate=" + hireDate +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Employee employee = (Employee) o;
+
+        return new EqualsBuilder().appendSuper(super.equals(o)).append(getSalary(), employee.getSalary()).append(getPosition(), employee.getPosition()).append(getHireDate(), employee.getHireDate()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(getPosition()).append(getSalary()).append(getHireDate()).toHashCode();
     }
 }

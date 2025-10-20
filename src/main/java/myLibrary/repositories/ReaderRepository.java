@@ -1,8 +1,8 @@
-package library.repositories;
+package myLibrary.repositories;
 
 import jakarta.persistence.EntityManager;
-import library.Reader;
-import library.ReaderType;
+import myLibrary.Reader;
+import myLibrary.ReaderType;
 
 import java.util.List;
 import java.util.UUID;
@@ -70,7 +70,5 @@ public class ReaderRepository implements Repository<Reader> {
                 .setParameter("type", type)
                 .getResultList();
     }
-
-
 
 }

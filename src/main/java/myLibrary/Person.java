@@ -1,4 +1,4 @@
-package library;
+package myLibrary;
 
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 
-@MappedSuperclass
+@Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Person {
 
@@ -66,6 +66,7 @@ public abstract class Person {
 
     public Library getLibrary() { return library; }
     public void setLibrary(Library library) { this.library = library; }
+
 
     @Override
     public String toString() {

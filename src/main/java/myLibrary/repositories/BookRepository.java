@@ -1,9 +1,8 @@
-package library.repositories;
+package myLibrary.repositories;
 
 import jakarta.persistence.EntityManager;
-import library.Book;
-import library.Reader;
-import library.enums.BookGenre;
+import myLibrary.Book;
+import myLibrary.enums.BookGenre;
 
 import java.util.List;
 import java.util.UUID;
@@ -57,11 +56,10 @@ public class BookRepository implements Repository<Book> {
                 .getResultList();
     }
 
-    public Book findByIsbn(String isbn) {
-        List<Book> books = em.createQuery("SELECT b FROM Book b WHERE b.isbn = :isbn", Book.class)
+    public List<Book> findByIsbn(String isbn) {
+        return em.createQuery("SELECT b FROM Book b WHERE b.isbn = :isbn", Book.class)
                 .setParameter("isbn", isbn)
                 .getResultList();
-        return books.isEmpty() ? null : books.getFirst();
     }
 
     public List<Book> findByGenre(BookGenre genre) {

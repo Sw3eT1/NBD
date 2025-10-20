@@ -1,11 +1,13 @@
-package library;
+package myLibrary;
 
 import jakarta.persistence.*;
-import library.enums.BookGenre;
+import myLibrary.enums.BookGenre;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -38,10 +40,20 @@ public class Book {
     private String language;
     private String description;
 
-    public Book(String title, String author, String isbn) {
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<BookCopy> copies = new ArrayList<>();
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookAllowedReaderType> allowedReaderTypes;
+
+    public Book(String title, String author, String isbn, BookGenre genre) {
         this.title = Objects.requireNonNull(title);
         this.author = Objects.requireNonNull(author);
         this.isbn = Objects.requireNonNull(isbn);
+        this.copies = new ArrayList<>();
+        this.allowedReaderTypes = new ArrayList<>();
+        this.genre = genre;
     }
 
     public Book() {
@@ -124,6 +136,34 @@ public class Book {
         this.description = description;
     }
 
+    public void addCopy(BookCopy copy) {
+        this.copies.add(copy);
+        copy.setBook(this);
+    }
+
+    public void removeCopy(BookCopy copy) {
+        this.copies.remove(copy);
+        copy.setBook(null);
+    }
+
+    public List<BookCopy> getCopies() {
+        return copies;
+    }
+
+
+    public void addAllowedType(ReaderType type) {
+        BookAllowedReaderType bar = new BookAllowedReaderType(this, type);
+        allowedReaderTypes.add(bar);
+    }
+
+    public void removeAllowedType(ReaderType type) {
+        allowedReaderTypes.removeIf(bar -> bar.getReaderType().equals(type));
+    }
+
+    public List<BookAllowedReaderType> getAllowedTypes() {
+        return allowedReaderTypes;
+    }
+
     @Override
     public String toString() {
         return "Book{" +
@@ -137,6 +177,8 @@ public class Book {
                 ", pages=" + pages +
                 ", language='" + language + '\'' +
                 ", description='" + description + '\'' +
+                ", copies=" + copies +
+                ", allowedReaderTypes=" + allowedReaderTypes +
                 '}';
     }
 
@@ -148,11 +190,11 @@ public class Book {
 
         Book book = (Book) o;
 
-        return new EqualsBuilder().append(getPublicationYear(), book.getPublicationYear()).append(getPages(), book.getPages()).append(getId(), book.getId()).append(getTitle(), book.getTitle()).append(getAuthor(), book.getAuthor()).append(getPublisher(), book.getPublisher()).append(getGenre(), book.getGenre()).append(getIsbn(), book.getIsbn()).append(getLanguage(), book.getLanguage()).append(getDescription(), book.getDescription()).isEquals();
+        return new EqualsBuilder().append(getPublicationYear(), book.getPublicationYear()).append(getPages(), book.getPages()).append(getId(), book.getId()).append(getTitle(), book.getTitle()).append(getAuthor(), book.getAuthor()).append(getPublisher(), book.getPublisher()).append(getGenre(), book.getGenre()).append(getIsbn(), book.getIsbn()).append(getLanguage(), book.getLanguage()).append(getDescription(), book.getDescription()).append(getCopies(), book.getCopies()).append(allowedReaderTypes, book.allowedReaderTypes).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getTitle()).append(getAuthor()).append(getPublisher()).append(getGenre()).append(getIsbn()).append(getPublicationYear()).append(getPages()).append(getLanguage()).append(getDescription()).toHashCode();
+        return new HashCodeBuilder(17, 37).append(getId()).append(getTitle()).append(getAuthor()).append(getPublisher()).append(getGenre()).append(getIsbn()).append(getPublicationYear()).append(getPages()).append(getLanguage()).append(getDescription()).append(getCopies()).append(allowedReaderTypes).toHashCode();
     }
 }

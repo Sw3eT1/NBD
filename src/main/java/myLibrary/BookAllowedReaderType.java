@@ -1,4 +1,4 @@
-package library;
+package myLibrary;
 
 import jakarta.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -41,6 +41,10 @@ public class BookAllowedReaderType {
         this.book = book;
     }
 
+    public void setReaderType(ReaderType readerType) {
+        this.readerType = readerType;
+    }
+
 
     public ReaderType getReaderType() {
         return readerType;
@@ -63,11 +67,11 @@ public class BookAllowedReaderType {
 
         BookAllowedReaderType that = (BookAllowedReaderType) o;
 
-        return new EqualsBuilder().append(id, that.id).append(book, that.book).append(readerType, that.readerType).isEquals();
+        return new EqualsBuilder().append(getId(), that.getId()).append(getBook(), that.getBook()).append(getReaderType(), that.getReaderType()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(id).append(book).append(readerType).toHashCode();
+        return new HashCodeBuilder(17, 37).append(getId()).append(getBook()).append(getReaderType()).toHashCode();
     }
 }

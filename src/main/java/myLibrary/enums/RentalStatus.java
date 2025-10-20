@@ -1,4 +1,4 @@
-package library.enums;
+package myLibrary.enums;
 
 public enum RentalStatus {
     ACTIVE,

@@ -1,7 +1,7 @@
-package library.repositories;
+package myLibrary.repositories;
 
 import jakarta.persistence.EntityManager;
-import library.Employee;
+import myLibrary.Employee;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;

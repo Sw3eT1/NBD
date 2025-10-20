@@ -1,4 +1,4 @@
-package library.repositories;
+package myLibrary.repositories;
 
 import java.util.UUID;
 

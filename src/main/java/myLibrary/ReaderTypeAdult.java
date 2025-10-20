@@ -1,4 +1,4 @@
-package library;
+package myLibrary;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

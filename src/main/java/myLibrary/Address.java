@@ -1,23 +1,27 @@
-package library;
+package myLibrary;
 
 import jakarta.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.UUID;
 
 @Embeddable
 public class Address {
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID id;
 
     private String houseNumber;
+
+    @Column(nullable = false)
     private String street;
+
+    @Column(nullable = false)
     private String city;
+
     private String state;
+
+    @Column(nullable = false)
     private String zipcode;
+
+    @Column(nullable = false)
     private String country;
 
     public Address() {
@@ -81,13 +85,9 @@ public class Address {
     }
 
 
-    public UUID getId() {
-        return id;
-    }
-
     @Override
     public String toString() {
-        return "library.Address{" +
+        return "Address{" +
                 "houseNumber='" + houseNumber + '\'' +
                 ", street='" + street + '\'' +
                 ", city='" + city + '\'' +
