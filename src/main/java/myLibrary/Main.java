@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import myLibrary.enums.BookGenre;
-
 import myLibrary.managers.*;
 
 import java.time.LocalDate;
@@ -22,6 +21,8 @@ public class Main {
         ReaderManager readerManager = new ReaderManager(em);
         RentalManager rentalManager = new RentalManager(em);
 
+        System.out.println("\n===== START TESTÓW BIBLIOTEKI =====");
+
         // --- CREATE ADDRESSES ---
         Address libAddress = new Address("1", "Główna", "Warszawa", "Mazowieckie", "00-001", "Polska");
         Address empAddress = new Address("2", "Boczna", "Warszawa", "Mazowieckie", "00-002", "Polska");
@@ -38,14 +39,17 @@ public class Main {
                 "08:00-20:00"
         );
         libraryManager.addLibrary(library);
+        System.out.println("✔ Utworzono bibliotekę: " + library.getName());
 
         // --- CREATE EMPLOYEES ---
         Employee emp1 = new Employee("Jan", "Kowalski", "jan@biblioteka.pl", "111-222-333", empAddress,
                 library, "Bibliotekarz", 4000, LocalDate.of(2022,1,1));
         Employee emp2 = new Employee("Anna", "Nowak", "anna@biblioteka.pl", "444-555-666", empAddress,
                 library, "Bibliotekarz", 4500, LocalDate.of(2023,2,15));
+
         employeeManager.addEmployee(emp1, library);
         employeeManager.addEmployee(emp2, library);
+        System.out.println("✔ Dodano pracowników: " + emp1.getName() + ", " + emp2.getName());
 
         // --- CREATE READER TYPES ---
         ReaderType teenager = new ReaderTypeTeenager();
@@ -58,22 +62,26 @@ public class Main {
                 readerAddress, library, "R001", teenager);
         Reader reader2 = new Reader("Katarzyna", "Zielińska", "reader2@email.com", "555-789-012",
                 readerAddress, library, "R002", adultType);
+
         readerManager.registerReader(reader1);
         readerManager.registerReader(reader2);
+        System.out.println("Zarejestrowano czytelników: " + reader1.getName() + ", " + reader2.getName());
 
         // --- CREATE BOOKS ---
         Book book1 = new Book("Pan Tadeusz", "Adam Mickiewicz", "111-111", BookGenre.CLASSIC);
         Book book2 = new Book("W pustyni i w puszczy", "Henryk Sienkiewicz", "222-222", BookGenre.CLASSIC);
         bookManager.addBook(book1);
         bookManager.addBook(book2);
+        System.out.println("Dodano książki: " + book1.getTitle() + ", " + book2.getTitle());
 
-        // --- CREATE BOOK COPIES (linked to library) ---
+        // --- CREATE BOOK COPIES ---
         BookCopy copy1 = new BookCopy(book1, library);
         BookCopy copy2 = new BookCopy(book1, library);
         BookCopy copy3 = new BookCopy(book2, library);
         bookManager.addBookCopy(book1, copy1);
         bookManager.addBookCopy(book1, copy2);
         bookManager.addBookCopy(book2, copy3);
+        System.out.println("Dodano egzemplarze książek");
 
         // --- RENTAL OPERATIONS ---
         System.out.println("\n--- WYPOŻYCZENIA ---");
@@ -84,20 +92,57 @@ public class Main {
         try {
             rentalManager.rentBook(reader2, copy1, LocalDate.now().plusDays(7));
         } catch (Exception e) {
-            System.out.println("Błąd: " + e.getMessage());
+            System.out.println("Błąd przy wypożyczeniu zajętego egzemplarza: " + e.getMessage());
         }
 
         // --- RETURN BOOK ---
         rentalManager.returnBook(rentalManager.findActiveRentals().getFirst().getId());
-
-        System.out.println(copy1.getStatus());
-
+        System.out.println("Zwrócono książkę: " + copy1.getBook().getTitle());
+        System.out.println("Status egzemplarza: " + copy1.getStatus());
 
         // --- LIST ACTIVE RENTALS ---
         System.out.println("\n--- AKTYWNE WYPOŻYCZENIA ---");
         for (Rental r : rentalManager.findActiveRentals()) {
-            System.out.println(r.getReader().getName() + " wypożyczył " + r.getBookCopy().getBook().getTitle());
+            System.out.println("• " + r.getReader().getName() + " wypożyczył " + r.getBookCopy().getBook().getTitle());
         }
+
+        // --- TEST LIMITU KSIĄŻEK ---
+        System.out.println("\n--- TEST LIMITU KSIĄŻEK ---");
+        try {
+            // Nastolatek ma limit 5, więc tworzymy 6 książek i próbujemy wypożyczyć 6
+            for (int i = 1; i <= 6; i++) {
+                Book testBook = new Book("TestBook" + i, "Autor", "TB-" + i, BookGenre.SCIENCE_FICTION);
+                bookManager.addBook(testBook);
+                BookCopy testCopy = new BookCopy(testBook, library);
+                bookManager.addBookCopy(testBook, testCopy);
+                rentalManager.rentBook(reader1, testCopy, LocalDate.now().plusDays(5));
+            }
+        } catch (Exception e) {
+            System.out.println("Oczekiwany błąd limitu: " + e.getMessage());
+        }
+
+        // --- TEST UPDATE'ÓW ---
+        System.out.println("\n--- TEST UPDATE'ÓW ---");
+        emp1.setSalary(5000);
+        employeeManager.updateEmployee(emp1);
+        System.out.println("Zaktualizowano pensję pracownika: " + emp1.getName() + " -> " + emp1.getSalary());
+
+        book1.setDescription("Narodowy epos Adama Mickiewicza.");
+        bookManager.updateBook(book1);
+        System.out.println("Zaktualizowano opis książki: " + book1.getTitle());
+
+        // --- TEST USUNIĘCIA CZYTELNIKA ---
+        System.out.println("\n--- TEST USUNIĘCIA CZYTELNIKA ---");
+        readerManager.removeReader(reader2);
+        System.out.println("Usunięto czytelnika: " + reader2.getName());
+
+        // --- TEST WYŚWIETLENIA WSZYSTKICH CZYTELNIKÓW ---
+        System.out.println("\n--- LISTA WSZYSTKICH CZYTELNIKÓW ---");
+        for (Reader r : readerManager.getAllReaders()) {
+            System.out.println("• " + r.getName() + " (" + r.getCardNumber() + ")");
+        }
+
+        System.out.println("\n===== KONIEC TESTÓW =====");
 
         em.close();
         emf.close();

@@ -29,6 +29,10 @@ public class BookCopy {
     @Enumerated(EnumType.STRING)
     private BookStatus status;
 
+    @Version
+    private long version;
+
+
     @OneToMany(mappedBy = "bookCopy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rental> rentals = new ArrayList<>();
 
@@ -50,14 +54,18 @@ public class BookCopy {
     public List<Rental> getRentals() { return rentals; }
 
     public void addRental(Rental rental) {
-        rentals.add(rental);
-        rental.setBookCopy(this);
+        if (!rentals.contains(rental)) {
+            rentals.add(rental);
+            rental.setBookCopy(this);
+        }
     }
 
     public void removeRental(Rental rental) {
-        rentals.remove(rental);
-        rental.setBookCopy(null);
+        if (rentals.remove(rental)) {
+            rental.setBookCopy(null);
+        }
     }
+
 
     @Override
     public String toString() {

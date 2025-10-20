@@ -2,6 +2,7 @@ package myLibrary.managers;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.LockModeType;
 import myLibrary.BookCopy;
 import myLibrary.Reader;
 import myLibrary.Rental;
@@ -13,76 +14,56 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public class RentalManager {
-    private final EntityManager entityManager;
+public class RentalManager extends BaseManager {
     private final RentalRepository rentalRepository;
 
     public RentalManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
+        super(entityManager);
         this.rentalRepository = new RentalRepository(entityManager);
     }
 
     public void rentBook(Reader reader, BookCopy copy, LocalDate dueDate) {
-        EntityTransaction tx = entityManager.getTransaction();
-        try {
-            tx.begin();
+        executeInTransaction(() -> {
+            BookCopy lockedCopy = em.find(BookCopy.class, copy.getId(), LockModeType.OPTIMISTIC);
 
-            if (copy.getId() == null) {
-                entityManager.persist(copy);
-            }
-
-            if (copy.getStatus() != BookStatus.AVAILABLE) {
+            if (lockedCopy.getStatus() != BookStatus.AVAILABLE) {
                 throw new IllegalStateException("Egzemplarz nie jest dostępny!");
             }
-            if (rentalRepository.hasActiveRental(reader.getId(), copy.getId())) {
-                throw new IllegalStateException("Czytelnik ma już aktywne wypożyczenie tego egzemplarza!");
+
+            long activeCount = rentalRepository.findByReaderId(reader.getId()).stream()
+                    .filter(r -> r.getStatus() == RentalStatus.ACTIVE)
+                    .count();
+
+            if (activeCount >= reader.getReaderType().getMaxBooks()) {
+                throw new IllegalStateException("Czytelnik osiągnął limit wypożyczeń!");
             }
 
-            Rental rental = new Rental(reader, copy, LocalDate.now(), dueDate);
-            copy.setStatus(BookStatus.RENTED);
-            copy.addRental(rental);
+            Rental rental = new Rental(reader, lockedCopy, LocalDate.now(), dueDate);
+            lockedCopy.setStatus(BookStatus.RENTED);
             reader.addRental(rental);
+            lockedCopy.addRental(rental);
             rentalRepository.add(rental);
-
-            tx.commit();
-            System.out.println("Wypożyczono książkę: " + copy.getBook().getTitle());
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        }
+        });
     }
 
     public void returnBook(UUID rentalId) {
-        EntityTransaction tx = entityManager.getTransaction();
-        try {
-            tx.begin();
-
+        executeInTransaction(() -> {
             Rental rental = rentalRepository.find(rentalId);
-            if (rental == null) {
+            if (rental == null)
                 throw new IllegalArgumentException("Nie znaleziono wypożyczenia!");
-            }
-            if (rental.getStatus() != RentalStatus.ACTIVE) {
+            if (rental.getStatus() != RentalStatus.ACTIVE)
                 throw new IllegalStateException("To wypożyczenie nie jest aktywne!");
-            }
 
-            rental.setStatus(RentalStatus.RETURNED);
-            rental.setReturnDate(LocalDate.now());
-
+            rental.markReturned();
             BookCopy copy = rental.getBookCopy();
             copy.setStatus(BookStatus.AVAILABLE);
-
-            entityManager.merge(copy);
+            em.merge(copy);
             rentalRepository.update(rental);
-
-            tx.commit();
-            System.out.println("Zwrócono książkę: " + rental.getBookCopy().getBook().getTitle());
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        }
+        });
     }
 
     public List<Rental> findActiveRentals() {
         return rentalRepository.findActiveRentals();
     }
 }
+

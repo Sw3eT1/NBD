@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface Repository<T> {
@@ -7,4 +8,6 @@ public interface Repository<T> {
     void delete(T object);
     void update(T object);
     T find(UUID id);
+    List<T> findAll();
 }
+

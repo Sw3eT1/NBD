@@ -1,6 +1,7 @@
 package myLibrary.repositories;
 
 import jakarta.persistence.EntityManager;
+import myLibrary.Book;
 import myLibrary.Reader;
 import myLibrary.ReaderType;
 
@@ -35,6 +36,12 @@ public class ReaderRepository implements Repository<Reader> {
                 .setParameter("id", id).
                 getResultList();
         return readers.isEmpty() ? null : readers.getFirst();
+    }
+
+    @Override
+    public List<Reader> findAll() {
+        return em.createQuery("SELECT r FROM Reader r", Reader.class)
+                .getResultList();
     }
 
     public Reader findCardNumber(String cardNumber) {

@@ -37,6 +37,7 @@ public class EmployeeRespository implements Repository<Employee> {
         return employees.isEmpty() ? null : employees.getFirst();
     }
 
+    @Override
     public List<Employee> findAll() {
         return em.createQuery("SELECT e FROM Employee e", Employee.class)
                 .getResultList();

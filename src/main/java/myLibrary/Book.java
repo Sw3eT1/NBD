@@ -40,6 +40,9 @@ public class Book {
     private String language;
     private String description;
 
+    @Version
+    private long version;
+
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<BookCopy> copies = new ArrayList<>();
@@ -137,32 +140,32 @@ public class Book {
     }
 
     public void addCopy(BookCopy copy) {
-        this.copies.add(copy);
-        copy.setBook(this);
+        if (!copies.contains(copy)) {
+            copies.add(copy);
+            copy.setBook(this);
+        }
     }
 
     public void removeCopy(BookCopy copy) {
-        this.copies.remove(copy);
-        copy.setBook(null);
+        if (copies.remove(copy)) {
+            copy.setBook(null);
+        }
     }
-
-    public List<BookCopy> getCopies() {
-        return copies;
-    }
-
 
     public void addAllowedType(ReaderType type) {
-        BookAllowedReaderType bar = new BookAllowedReaderType(this, type);
-        allowedReaderTypes.add(bar);
+        boolean exists = allowedReaderTypes.stream()
+                .anyMatch(art -> art.getReaderType().equals(type));
+        if (!exists) {
+            BookAllowedReaderType relation = new BookAllowedReaderType(this, type);
+            allowedReaderTypes.add(relation);
+            type.addAllowedBook(relation);
+        }
     }
 
     public void removeAllowedType(ReaderType type) {
-        allowedReaderTypes.removeIf(bar -> bar.getReaderType().equals(type));
+        allowedReaderTypes.removeIf(art -> art.getReaderType().equals(type));
     }
 
-    public List<BookAllowedReaderType> getAllowedTypes() {
-        return allowedReaderTypes;
-    }
 
     @Override
     public String toString() {

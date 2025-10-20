@@ -40,6 +40,7 @@ public class RentalRepository implements Repository<Rental> {
         return rentals.isEmpty() ? null : rentals.getFirst();
     }
 
+    @Override
     public List<Rental> findAll() {
         return em.createQuery("SELECT r FROM Rental r", Rental.class)
                 .getResultList();

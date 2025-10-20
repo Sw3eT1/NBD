@@ -40,16 +40,19 @@ public class Reader extends Person {
 
     public List<Rental> getRentals() { return rentals; }
 
-    // 🔹 metody pomocnicze
     public void addRental(Rental rental) {
-        rentals.add(rental);
-        rental.setReader(this);
+        if (!rentals.contains(rental)) {
+            rentals.add(rental);
+            rental.setReader(this);
+        }
     }
 
     public void removeRental(Rental rental) {
-        rentals.remove(rental);
-        rental.setReader(null);
+        if (rentals.remove(rental)) {
+            rental.setReader(null);
+        }
     }
+
 
     @Override
     public String toString() {

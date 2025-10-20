@@ -45,26 +45,20 @@ public abstract class ReaderType {
     public List<BookAllowedReaderType> getAllowedBooks() { return allowedBooks; }
     public List<Reader> getReaders() { return readers; }
 
-    // 🔹 metody pomocnicze
     public void addReader(Reader reader) {
-        readers.add(reader);
-        reader.setReaderType(this);
-    }
-
-    public void removeReader(Reader reader) {
-        readers.remove(reader);
-        reader.setReaderType(null);
+        if (!readers.contains(reader)) {
+            readers.add(reader);
+            reader.setReaderType(this);
+        }
     }
 
     public void addAllowedBook(BookAllowedReaderType allowedBook) {
-        allowedBooks.add(allowedBook);
-        allowedBook.setReaderType(this);
+        if (!allowedBooks.contains(allowedBook)) {
+            allowedBooks.add(allowedBook);
+            allowedBook.setReaderType(this);
+        }
     }
 
-    public void removeAllowedBook(BookAllowedReaderType allowedBook) {
-        allowedBooks.remove(allowedBook);
-        allowedBook.setReaderType(null);
-    }
 
     @Override
     public String toString() {

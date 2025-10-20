@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -127,29 +128,45 @@ public class Library {
         return employees;
     }
 
+    public void addBookCopy(BookCopy copy) {
+        if (!bookCopies.contains(copy)) {
+            bookCopies.add(copy);
+            copy.setLibrary(this);
+        }
+    }
+
+    public void removeBookCopy(BookCopy copy) {
+        if (bookCopies.remove(copy)) {
+            copy.setLibrary(null);
+        }
+    }
+
     public void addEmployee(Employee employee) {
-        this.employees.add(employee);
-        employee.setLibrary(this);
+        if (!employees.contains(employee)) {
+            employees.add(employee);
+            employee.setLibrary(this);
+        }
     }
 
     public void removeEmployee(Employee employee) {
-        this.employees.remove(employee);
-        employee.setLibrary(null);
-    }
-
-    public List<Reader> getMembers(){
-        return members;
+        if (employees.remove(employee)) {
+            employee.setLibrary(null);
+        }
     }
 
     public void addMember(Reader reader) {
-        this.members.add(reader);
-        reader.setLibrary(this);
+        if (!members.contains(reader)) {
+            members.add(reader);
+            reader.setLibrary(this);
+        }
     }
 
     public void removeMember(Reader reader) {
-        this.members.remove(reader);
-        reader.setLibrary(null);
+        if (members.remove(reader)) {
+            reader.setLibrary(null);
+        }
     }
+
 
 
     @Override
@@ -171,17 +188,13 @@ public class Library {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-
         if (o == null || getClass() != o.getClass()) return false;
-
         Library library = (Library) o;
-
-        return new EqualsBuilder().append(isOpenOnWeekends(), library.isOpenOnWeekends()).append(getId(), library.getId()).append(getName(), library.getName()).append(getAddress(), library.getAddress()).append(getPhoneNumber(), library.getPhoneNumber()).append(getEmail(), library.getEmail()).append(getWebsite(), library.getWebsite()).append(getBookCopies(), library.getBookCopies()).append(getEmployees(), library.getEmployees()).append(getMembers(), library.getMembers()).append(getOpeningHours(), library.getOpeningHours()).isEquals();
+        return openOnWeekends == library.openOnWeekends && Objects.equals(id, library.id) && Objects.equals(name, library.name) && Objects.equals(address, library.address) && Objects.equals(phoneNumber, library.phoneNumber) && Objects.equals(email, library.email) && Objects.equals(website, library.website) && Objects.equals(bookCopies, library.bookCopies) && Objects.equals(employees, library.employees) && Objects.equals(members, library.members) && Objects.equals(openingHours, library.openingHours);
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getAddress()).append(getPhoneNumber()).append(getEmail()).append(getWebsite()).append(getBookCopies()).append(getEmployees()).append(getMembers()).append(isOpenOnWeekends()).append(getOpeningHours()).toHashCode();
+        return Objects.hash(id, name, address, phoneNumber, email, website, bookCopies, employees, members, openOnWeekends, openingHours);
     }
 }

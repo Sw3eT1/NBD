@@ -39,6 +39,7 @@ public class BookRepository implements Repository<Book> {
         return books.isEmpty() ? null : books.getFirst();
     }
 
+    @Override
     public List<Book> findAll() {
         return em.createQuery("SELECT b FROM Book b", Book.class)
                 .getResultList();

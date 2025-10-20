@@ -59,8 +59,12 @@ public class Rental {
     public RentalStatus getStatus() { return status; }
     public void setStatus(RentalStatus status) { this.status = status; }
     public double getFine() { return fine; }
-
     public void setFine(double fine) { this.fine = fine; }
+
+    public void markReturned() {
+        this.status = RentalStatus.RETURNED;
+        this.returnDate = LocalDate.now();
+    }
 
     @Override
     public String toString() {
