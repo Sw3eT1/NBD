@@ -1,69 +1,100 @@
 package myLibrary.managers;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.LockModeType;
+import jakarta.persistence.TypedQuery;
 import myLibrary.BookCopy;
 import myLibrary.Reader;
 import myLibrary.Rental;
 import myLibrary.enums.BookStatus;
 import myLibrary.enums.RentalStatus;
-import myLibrary.repositories.RentalRepository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 public class RentalManager extends BaseManager {
-    private final RentalRepository rentalRepository;
 
-    public RentalManager(EntityManager entityManager) {
-        super(entityManager);
-        this.rentalRepository = new RentalRepository(entityManager);
+    public RentalManager(EntityManager em) {
+        super(em);
     }
 
     public void rentBook(Reader reader, BookCopy copy, LocalDate dueDate) {
         executeInTransaction(() -> {
-            BookCopy lockedCopy = em.find(BookCopy.class, copy.getId(), LockModeType.OPTIMISTIC);
+            Reader managedReader = em.contains(reader) ? reader : em.merge(reader);
+            BookCopy managedCopy = em.contains(copy) ? copy : em.merge(copy);
 
-            if (lockedCopy.getStatus() != BookStatus.AVAILABLE) {
-                throw new IllegalStateException("Egzemplarz nie jest dostępny!");
+            if (managedCopy.getStatus() != BookStatus.AVAILABLE) {
+                throw new IllegalStateException("Egzemplarz nie jest dostępny do wypożyczenia.");
             }
 
-            long activeCount = rentalRepository.findByReaderId(reader.getId()).stream()
-                    .filter(r -> r.getStatus() == RentalStatus.ACTIVE)
-                    .count();
-
-            if (activeCount >= reader.getReaderType().getMaxBooks()) {
-                throw new IllegalStateException("Czytelnik osiągnął limit wypożyczeń!");
+            if (hasActiveRental(managedReader.getId(), managedCopy.getId())) {
+                throw new IllegalStateException("Czytelnik ma już aktywne wypożyczenie tej książki.");
             }
 
-            Rental rental = new Rental(reader, lockedCopy, LocalDate.now(), dueDate);
-            lockedCopy.setStatus(BookStatus.RENTED);
-            reader.addRental(rental);
-            lockedCopy.addRental(rental);
-            rentalRepository.add(rental);
+            if (countActiveRentals(managedReader) >= managedReader.getReaderType().getMaxBooks()) {
+                throw new IllegalStateException("Czytelnik osiągnął maksymalny limit wypożyczeń.");
+            }
+
+            Rental rental = new Rental(managedReader, managedCopy, LocalDate.now(), dueDate);
+            managedCopy.setStatus(BookStatus.RENTED);
+
+            em.persist(rental);
+            em.merge(managedCopy);
         });
     }
 
     public void returnBook(UUID rentalId) {
         executeInTransaction(() -> {
-            Rental rental = rentalRepository.find(rentalId);
-            if (rental == null)
-                throw new IllegalArgumentException("Nie znaleziono wypożyczenia!");
-            if (rental.getStatus() != RentalStatus.ACTIVE)
-                throw new IllegalStateException("To wypożyczenie nie jest aktywne!");
+            Rental rental = em.find(Rental.class, rentalId);
+            if (rental == null) {
+                throw new IllegalArgumentException("Nie znaleziono wypożyczenia o ID: " + rentalId);
+            }
 
-            rental.markReturned();
+            if (rental.getStatus() != RentalStatus.ACTIVE) {
+                throw new IllegalStateException("To wypożyczenie nie jest aktywne.");
+            }
+
+            rental.setReturnDate(LocalDate.now());
+            rental.setStatus(RentalStatus.RETURNED);
+
             BookCopy copy = rental.getBookCopy();
             copy.setStatus(BookStatus.AVAILABLE);
+
+            em.merge(rental);
             em.merge(copy);
-            rentalRepository.update(rental);
         });
     }
 
+    private boolean hasActiveRental(UUID readerId, UUID copyId) {
+        TypedQuery<Long> query = em.createQuery("""
+            SELECT COUNT(r) FROM Rental r
+            WHERE r.reader.id = :readerId
+              AND r.bookCopy.id = :copyId
+              AND r.status = :status
+        """, Long.class);
+        query.setParameter("readerId", readerId);
+        query.setParameter("copyId", copyId);
+        query.setParameter("status", RentalStatus.ACTIVE);
+        return query.getSingleResult() > 0;
+    }
+
+    private long countActiveRentals(Reader reader) {
+        TypedQuery<Long> query = em.createQuery("""
+            SELECT COUNT(r) FROM Rental r
+            WHERE r.reader.id = :readerId
+              AND r.status = :status
+        """, Long.class);
+        query.setParameter("readerId", reader.getId());
+        query.setParameter("status", RentalStatus.ACTIVE);
+        return query.getSingleResult();
+    }
+
     public List<Rental> findActiveRentals() {
-        return rentalRepository.findActiveRentals();
+        return em.createQuery("""
+            SELECT r FROM Rental r
+            WHERE r.status = :status
+        """, Rental.class)
+                .setParameter("status", RentalStatus.ACTIVE)
+                .getResultList();
     }
 }
-

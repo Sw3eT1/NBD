@@ -187,17 +187,13 @@ public class Book {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-
         if (o == null || getClass() != o.getClass()) return false;
-
         Book book = (Book) o;
-
-        return new EqualsBuilder().append(getPublicationYear(), book.getPublicationYear()).append(getPages(), book.getPages()).append(getId(), book.getId()).append(getTitle(), book.getTitle()).append(getAuthor(), book.getAuthor()).append(getPublisher(), book.getPublisher()).append(getGenre(), book.getGenre()).append(getIsbn(), book.getIsbn()).append(getLanguage(), book.getLanguage()).append(getDescription(), book.getDescription()).append(getCopies(), book.getCopies()).append(allowedReaderTypes, book.allowedReaderTypes).isEquals();
+        return publicationYear == book.publicationYear && pages == book.pages && version == book.version && Objects.equals(id, book.id) && Objects.equals(title, book.title) && Objects.equals(author, book.author) && Objects.equals(publisher, book.publisher) && genre == book.genre && Objects.equals(isbn, book.isbn) && Objects.equals(language, book.language) && Objects.equals(description, book.description) && Objects.equals(copies, book.copies) && Objects.equals(allowedReaderTypes, book.allowedReaderTypes);
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getTitle()).append(getAuthor()).append(getPublisher()).append(getGenre()).append(getIsbn()).append(getPublicationYear()).append(getPages()).append(getLanguage()).append(getDescription()).append(getCopies()).append(allowedReaderTypes).toHashCode();
+        return Objects.hash(id, title, author, publisher, genre, isbn, publicationYear, pages, language, description, version, copies, allowedReaderTypes);
     }
 }
