@@ -1,34 +1,106 @@
 version: "3.9"
+
 services:
-  postgres:
-    image: postgres:16
-    container_name: nbd_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: nbd
-      POSTGRES_PASSWORD: nbdpassword
-      POSTGRES_DB: nbddb
+  mongo_1:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    image: mongocustom
+    container_name: mongodb1
+    hostname: mongodb1
+    networks:
+      - mongonet
     ports:
-      - "5433:5432"
+      - "27017:27017"
+    volumes:
+      - mongo-data-1:/data/db
+      - mongo-config-1:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpassword
+    command: --config /etc/mongod.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nbd -d nbddb"]
-      interval: 5s
+      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
-  tests:
-    image: maven:3.9.9-eclipse-temurin-21
-    container_name: nbd_tests
-    depends_on:
-      postgres:
-        condition: service_healthy
-    working_dir: /app
+  mongo_2:
+    image: mongocustom
+    container_name: mongodb2
+    hostname: mongodb2
+    networks:
+      - mongonet
+    ports:
+      - "27018:27017"
     volumes:
-      - ./:/app
+      - mongo-data-2:/data/db
+      - mongo-config-2:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpassword
+    command: --config /etc/mongod.conf
+    healthcheck:
+      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo_3:
+    image: mongocustom
+    container_name: mongodb3
+    hostname: mongodb3
+    networks:
+      - mongonet
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo-data-3:/data/db
+      - mongo-config-3:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpassword
+    command: --config /etc/mongod.conf
+    healthcheck:
+      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongoinit:
+    image: mongocustom
+    container_name: mongodbinit
+    hostname: mongodbinit
+    depends_on:
+      mongo_1:
+        condition: service_healthy
+      mongo_2:
+        condition: service_healthy
+      mongo_3:
+        condition: service_healthy
+    networks:
+      - mongonet
     command: >
       bash -c "
-        echo 'Waiting for PostgreSQL...' &&
-        sleep 5 &&
-        echo 'Running tests from Maven...' &&
-        mvn clean test
+        mongosh --host mongodb1:27017 -u admin -p adminpassword --authenticationDatabase admin --eval '
+          rs.initiate({
+            _id: \"replica_set_single\",
+            members: [
+              { _id: 0, host: \"mongodb1:27017\" },
+              { _id: 1, host: \"mongodb2:27017\" },
+              { _id: 2, host: \"mongodb3:27017\" }
+            ]
+          })
+        '
       "
+
+volumes:
+  mongo-data-1:
+  mongo-data-2:
+  mongo-data-3:
+  mongo-config-1:
+  mongo-config-2:
+  mongo-config-3:
+
+networks:
+  mongonet: {}
