@@ -1,106 +1,103 @@
 version: "3.9"
 
 services:
-  mongo_1:
+
+  mongo1:
     build:
       context: ./docker
-      dockerfile: Dockerfile
     image: mongocustom
-    container_name: mongodb1
-    hostname: mongodb1
-    networks:
-      - mongonet
+    container_name: mongo1
+    hostname: mongo1
+    networks: [mongonet]
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data-1:/data/db
-      - mongo-config-1:/data/configdb
+      - mongo1-data:/data/db
+      - mongo1-config:/data/configdb
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: adminpassword
     command: --config /etc/mongod.conf
     healthcheck:
-      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
 
-  mongo_2:
+  mongo2:
     image: mongocustom
-    container_name: mongodb2
-    hostname: mongodb2
-    networks:
-      - mongonet
+    container_name: mongo2
+    hostname: mongo2
+    networks: [mongonet]
     ports:
       - "27018:27017"
     volumes:
-      - mongo-data-2:/data/db
-      - mongo-config-2:/data/configdb
+      - mongo2-data:/data/db
+      - mongo2-config:/data/configdb
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: adminpassword
     command: --config /etc/mongod.conf
     healthcheck:
-      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
 
-  mongo_3:
+  mongo3:
     image: mongocustom
-    container_name: mongodb3
-    hostname: mongodb3
-    networks:
-      - mongonet
+    container_name: mongo3
+    hostname: mongo3
+    networks: [mongonet]
     ports:
       - "27019:27017"
     volumes:
-      - mongo-data-3:/data/db
-      - mongo-config-3:/data/configdb
+      - mongo3-data:/data/db
+      - mongo3-config:/data/configdb
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: adminpassword
     command: --config /etc/mongod.conf
     healthcheck:
-      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
 
-  mongoinit:
-    image: mongocustom
-    container_name: mongodbinit
-    hostname: mongodbinit
+  init-replica:
+    image: mongo:8.0.1
+    container_name: init-replica
+    networks: [mongonet]
     depends_on:
-      mongo_1:
+      mongo1:
         condition: service_healthy
-      mongo_2:
+      mongo2:
         condition: service_healthy
-      mongo_3:
+      mongo3:
         condition: service_healthy
-    networks:
-      - mongonet
     command: >
       bash -c "
-        mongosh --host mongodb1:27017 -u admin -p adminpassword --authenticationDatabase admin --eval '
+        echo 'Initializing replica set...';
+        mongosh --host mongo1:27017 -u admin -p adminpassword --authenticationDatabase admin --eval '
           rs.initiate({
-            _id: \"replica_set_single\",
+            _id: \"rs0\",
             members: [
-              { _id: 0, host: \"mongodb1:27017\" },
-              { _id: 1, host: \"mongodb2:27017\" },
-              { _id: 2, host: \"mongodb3:27017\" }
+              { _id: 0, host: \"mongo1:27017\" },
+              { _id: 1, host: \"mongo2:27017\" },
+              { _id: 2, host: \"mongo3:27017\" }
             ]
           })
-        '
+        ';
+        echo 'Replica set initialization DONE.';
       "
 
 volumes:
-  mongo-data-1:
-  mongo-data-2:
-  mongo-data-3:
-  mongo-config-1:
-  mongo-config-2:
-  mongo-config-3:
+  mongo1-data:
+  mongo1-config:
+  mongo2-data:
+  mongo2-config:
+  mongo3-data:
+  mongo3-config:
 
 networks:
-  mongonet: {}
+  mongonet:

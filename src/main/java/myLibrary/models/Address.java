@@ -1,33 +1,33 @@
-package myLibrary;
+package myLibrary.models;
 
-import jakarta.persistence.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
-
-@Embeddable
 public class Address {
 
+    @BsonProperty("houseNumber")
     private String houseNumber;
 
-    @Column(nullable = false)
+    @BsonProperty("street")
     private String street;
 
-    @Column(nullable = false)
+    @BsonProperty("city")
     private String city;
 
+    @BsonProperty("state")
     private String state;
 
-    @Column(nullable = false)
+    @BsonProperty("zipcode")
     private String zipcode;
 
-    @Column(nullable = false)
+    @BsonProperty("country")
     private String country;
 
-    public Address() {
+    public Address() {}
 
-    }
-    public Address(String houseNumber, String street, String city, String state, String zipcode, String country) {
+    public Address(String houseNumber, String street, String city,
+                   String state, String zipcode, String country) {
         this.houseNumber = houseNumber;
         this.street = street;
         this.city = city;
@@ -36,53 +36,23 @@ public class Address {
         this.country = country;
     }
 
-    public String getHouseNumber() {
-        return houseNumber;
-    }
+    public String getHouseNumber() { return houseNumber; }
+    public void setHouseNumber(String houseNumber) { this.houseNumber = houseNumber; }
 
-    public void setHouseNumber(String houseNumber) {
-        this.houseNumber = houseNumber;
-    }
+    public String getStreet() { return street; }
+    public void setStreet(String street) { this.street = street; }
 
-    public String getStreet() {
-        return street;
-    }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
 
-    public void setStreet(String street) {
-        this.street = street;
-    }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
 
-    public String getCity() {
-        return city;
-    }
+    public String getZipcode() { return zipcode; }
+    public void setZipcode(String zipcode) { this.zipcode = zipcode; }
 
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getZipcode() {
-        return zipcode;
-    }
-
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
 
     @Override

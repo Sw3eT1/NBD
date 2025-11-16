@@ -33,6 +33,12 @@
             <version>${mongodb-driver-sync.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>${mongodb-driver-sync.version}</version>
+        </dependency>
+
         <!-- LOGGING -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

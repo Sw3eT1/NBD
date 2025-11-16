@@ -1,26 +1,24 @@
-package myLibrary;
+package myLibrary.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
 import java.time.LocalDate;
 
-
-@Entity
-@Table(name = "Employees")
+@BsonDiscriminator("EMPLOYEE")
 public class Employee extends Person {
+
     private String position;
     private double salary;
     private LocalDate hireDate;
 
-    public Employee() {
-        super();
-    }
+    public Employee() {}
 
-    public Employee(String name, String surname, String email, String phone, Address address
-                    ,Library library,String position, double salary, LocalDate hireDate) {
+    public Employee(String name, String surname, String email, String phone,
+                    Address address, Library library,
+                    String position, double salary, LocalDate hireDate) {
+
         super(name, surname, email, phone, address, library);
         this.position = position;
         this.salary = salary;
@@ -35,7 +33,6 @@ public class Employee extends Person {
 
     public LocalDate getHireDate() { return hireDate; }
     public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }
-
 
     @Override
     public String toString() {

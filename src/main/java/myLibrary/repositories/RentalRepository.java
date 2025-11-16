@@ -1,104 +1,57 @@
 package myLibrary.repositories;
 
-import jakarta.persistence.EntityManager;
-import myLibrary.Rental;
+import com.mongodb.client.MongoDatabase;
+import myLibrary.models.Rental;
 import myLibrary.enums.RentalStatus;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
-import java.time.LocalDate;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
-public class RentalRepository implements Repository<Rental> {
+import static com.mongodb.client.model.Aggregates.lookup;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.*;
 
-    private final EntityManager em;
+public class RentalRepository extends MongoRepository<Rental> {
 
-    public RentalRepository(EntityManager em) {
-        this.em = em;
-    }
-
-    @Override
-    public void add(Rental rental) {
-        em.persist(rental);
-    }
-
-    @Override
-    public void delete(Rental rental) {
-        em.remove(rental);
+    public RentalRepository(MongoDatabase db) {
+        super(db, "rentals", Rental.class);
     }
 
     @Override
     public void update(Rental rental) {
-        em.merge(rental);
+        collection.replaceOne(eq("_id", rental.getId()), rental);
     }
 
-    @Override
-    public Rental find(UUID id) {
-        List<Rental> rentals = em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.id = :id", Rental.class)
-                .setParameter("id", id)
-                .getResultList();
-        return rentals.isEmpty() ? null : rentals.getFirst();
-    }
-
-    @Override
-    public List<Rental> findAll() {
-        return em.createQuery("SELECT r FROM Rental r", Rental.class)
-                .getResultList();
-    }
-
-    public List<Rental> findByReaderId(UUID readerId) {
-        return em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.reader.id = :readerId", Rental.class)
-                .setParameter("readerId", readerId)
-                .getResultList();
-    }
-
-    public List<Rental> findByBookCopyId(UUID bookCopyId) {
-        return em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.bookCopy.id = :bookCopyId", Rental.class)
-                .setParameter("bookCopyId", bookCopyId)
-                .getResultList();
-    }
-
-    public List<Rental> findByLibraryId(UUID libraryId) {
-        return em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.bookCopy.library.id = :libraryId", Rental.class)
-                .setParameter("libraryId", libraryId)
-                .getResultList();
+    public boolean hasActiveRental(String readerId, String copyId) {
+        return collection.countDocuments(and(
+                eq("readerId", readerId),
+                eq("bookCopyId", copyId),
+                eq("status", RentalStatus.ACTIVE)
+        )) > 0;
     }
 
     public List<Rental> findActiveRentals() {
-        return em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.status = :status", Rental.class)
-                .setParameter("status", RentalStatus.ACTIVE)
-                .getResultList();
+        return collection.find(eq("status", RentalStatus.ACTIVE)).into(new ArrayList<>());
     }
 
-    public List<Rental> findOverdueRentals() {
-        return em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.status = :status AND r.dueDate < CURRENT_DATE", Rental.class)
-                .setParameter("status", RentalStatus.ACTIVE)
-                .getResultList();
+    public Rental findById(String id) {
+        return collection.find(eq("_id", id)).first();
     }
 
-    public List<Rental> findByRentalDateBetween(LocalDate start, LocalDate end) {
-        return em.createQuery(
-                        "SELECT r FROM Rental r WHERE r.rentalDate BETWEEN :start AND :end", Rental.class)
-                .setParameter("start", start)
-                .setParameter("end", end)
-                .getResultList();
-    }
+    public Document getRentalDetails(String rentalId) {
 
-    public boolean hasActiveRental(UUID readerId, UUID bookCopyId) {
-        Long count = em.createQuery(
-                        "SELECT COUNT(r) FROM Rental r " +
-                                "WHERE r.reader.id = :readerId " +
-                                "AND r.bookCopy.id = :bookCopyId " +
-                                "AND r.status = :status", Long.class)
-                .setParameter("readerId", readerId)
-                .setParameter("bookCopyId", bookCopyId)
-                .setParameter("status", RentalStatus.ACTIVE)
-                .getSingleResult();
-        return count > 0;
+        List<Bson> pipeline = List.of(
+                match(eq("_id", rentalId)),
+                lookup("bookCopies", "bookCopyId", "_id", "copy"),
+                lookup("readers", "readerId", "_id", "reader"),
+                lookup("books", "copy.bookId", "_id", "book")
+        );
+
+        return db.getCollection("rentals", Document.class)
+                .aggregate(pipeline)
+                .first();
     }
 }
