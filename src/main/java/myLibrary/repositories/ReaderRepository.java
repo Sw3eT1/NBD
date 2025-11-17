@@ -1,5 +1,7 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import myLibrary.models.Reader;
 import org.bson.Document;
@@ -14,8 +16,8 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class ReaderRepository extends MongoRepository<Reader> {
 
-    public ReaderRepository(MongoDatabase db) {
-        super(db, "readers", Reader.class);
+    public ReaderRepository(MongoClient client, MongoDatabase db) {
+        super(client, db, "readers", Reader.class);
     }
 
     @Override
@@ -30,6 +32,11 @@ public class ReaderRepository extends MongoRepository<Reader> {
     public List<Reader> findBySurname(String surname) {
         return collection.find(eq("surname", surname)).into(new ArrayList<>());
     }
+
+    public MongoCollection<Reader> getCollection() {
+        return db.getCollection("readers", Reader.class);
+    }
+
 
     public Document getReaderWithType(String readerId) {
 

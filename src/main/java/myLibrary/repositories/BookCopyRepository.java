@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import myLibrary.models.BookCopy;
 import myLibrary.enums.BookStatus;
@@ -16,8 +17,8 @@ import static com.mongodb.client.model.Filters.*;
 
 public class BookCopyRepository extends MongoRepository<BookCopy> {
 
-    public BookCopyRepository(MongoDatabase db) {
-        super(db, "bookCopies", BookCopy.class);
+    public BookCopyRepository(MongoClient client, MongoDatabase db) {
+        super(client, db, "bookCopies", BookCopy.class);
     }
 
     @Override

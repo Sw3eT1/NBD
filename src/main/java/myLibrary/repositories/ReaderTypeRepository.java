@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import myLibrary.models.ReaderType;
 
@@ -7,8 +8,8 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class ReaderTypeRepository extends MongoRepository<ReaderType> {
 
-    public ReaderTypeRepository(MongoDatabase db) {
-        super(db, "readerTypes", ReaderType.class);
+    public ReaderTypeRepository(MongoClient client, MongoDatabase db) {
+        super(client, db, "readerTypes", ReaderType.class);
     }
 
     @Override

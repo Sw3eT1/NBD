@@ -13,6 +13,8 @@ public class Reader extends Person {
     @BsonProperty("readerTypeId")
     private String readerTypeId;
 
+    private int activeRentals = 0;
+
     public Reader() {}
 
     public Reader(String name, String surname, String email, String phone,
@@ -40,11 +42,15 @@ public class Reader extends Person {
         this.readerTypeId = readerTypeId;
     }
 
+    public int getActiveRentals() { return activeRentals; }
+    public void setActiveRentals(int activeRentals) { this.activeRentals = activeRentals; }
+
     @Override
     public String toString() {
         return "Reader{" +
                 "cardNumber='" + cardNumber + '\'' +
                 ", readerTypeId='" + readerTypeId + '\'' +
+                ", activeRentals=" + activeRentals +
                 '}';
     }
 
@@ -56,11 +62,11 @@ public class Reader extends Person {
 
         Reader reader = (Reader) o;
 
-        return new EqualsBuilder().appendSuper(super.equals(o)).append(getCardNumber(), reader.getCardNumber()).append(getReaderTypeId(), reader.getReaderTypeId()).isEquals();
+        return new EqualsBuilder().appendSuper(super.equals(o)).append(getActiveRentals(), reader.getActiveRentals()).append(getCardNumber(), reader.getCardNumber()).append(getReaderTypeId(), reader.getReaderTypeId()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(getCardNumber()).append(getReaderTypeId()).toHashCode();
+        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(getCardNumber()).append(getReaderTypeId()).append(getActiveRentals()).toHashCode();
     }
 }

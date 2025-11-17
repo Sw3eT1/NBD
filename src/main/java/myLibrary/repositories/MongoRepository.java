@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -10,12 +11,19 @@ import static com.mongodb.client.model.Filters.eq;
 
 public abstract class MongoRepository<T> {
 
-    protected final MongoCollection<T> collection;
+    protected final MongoClient client;
     protected final MongoDatabase db;
+    protected final MongoCollection<T> collection;
 
-    protected MongoRepository(MongoDatabase db, String collectionName, Class<T> clazz) {
+    protected MongoRepository(MongoClient client, MongoDatabase db,
+                              String collectionName, Class<T> clazz) {
+        this.client = client;
         this.db = db;
         this.collection = db.getCollection(collectionName, clazz);
+    }
+
+    public MongoClient getClient() {
+        return client;
     }
 
     public void insert(T entity) {

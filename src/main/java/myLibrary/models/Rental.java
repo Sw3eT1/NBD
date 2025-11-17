@@ -27,12 +27,13 @@ public class Rental {
     private LocalDate dueDate;
     private LocalDate returnDate;
 
-    @BsonRepresentation(org.bson.BsonType.STRING)
     private RentalStatus status;
 
     private double fine;
 
-    public Rental() {}
+    public Rental() {
+        this.id = UUID.randomUUID().toString();
+    }
 
     public Rental(Reader reader, BookCopy copy,
                   LocalDate rentalDate, LocalDate dueDate) {

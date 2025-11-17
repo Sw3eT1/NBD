@@ -20,7 +20,7 @@ public class LibraryService {
         repo.update(library);
     }
 
-    public Library find(ObjectId id) {
-        return repo.findById(id.toString());
+    public Library find(String id) {
+        return repo.findById(id);
     }
 }

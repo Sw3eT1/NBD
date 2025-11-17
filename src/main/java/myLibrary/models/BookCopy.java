@@ -23,10 +23,11 @@ public class BookCopy {
     @BsonProperty("libraryId")
     private String libraryId;
 
-    @BsonRepresentation(org.bson.BsonType.STRING)
     private BookStatus status;
 
-    public BookCopy() {}
+    public BookCopy() {
+        this.id = UUID.randomUUID().toString();
+    }
 
     public BookCopy(Book book, Library library) {
         this.id = UUID.randomUUID().toString();

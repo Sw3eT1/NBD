@@ -26,8 +26,9 @@ public class BookCopyService {
         Book book = bookRepo.findById(bookId);
         Library library = libraryRepo.findById(libraryId);
 
-        if (book == null || library == null)
-            throw new IllegalArgumentException("Book or Library not found.");
+        if (book == null) throw new IllegalArgumentException("Book not found: " + bookId);
+        if (library == null) throw new IllegalArgumentException("Library not found: " + libraryId);
+
 
         BookCopy copy = new BookCopy(book, library);
         copyRepo.insert(copy);
@@ -35,9 +36,12 @@ public class BookCopyService {
         return copy;
     }
 
-    public void changeStatus(BookCopy copy, BookStatus status) {
+    public void changeStatus(String copyId, BookStatus status) {
+        BookCopy copy = copyRepo.findById(copyId);
+        if (copy == null) throw new IllegalArgumentException("Copy not found: " + copyId);
         copy.setStatus(status);
         copyRepo.update(copy);
     }
+
 }
 

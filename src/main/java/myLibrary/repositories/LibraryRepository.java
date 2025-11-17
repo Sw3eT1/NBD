@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import myLibrary.models.Library;
 import org.bson.Document;
@@ -14,8 +15,8 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class LibraryRepository extends MongoRepository<Library> {
 
-    public LibraryRepository(MongoDatabase db) {
-        super(db, "libraries", Library.class);
+    public LibraryRepository(MongoClient client, MongoDatabase db) {
+        super(client, db, "libraries", Library.class);
     }
 
     @Override

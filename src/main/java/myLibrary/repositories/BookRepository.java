@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import myLibrary.models.Book;
 import org.bson.Document;
@@ -14,8 +15,8 @@ import static com.mongodb.client.model.Filters.*;
 
 public class BookRepository extends MongoRepository<Book> {
 
-    public BookRepository(MongoDatabase db) {
-        super(db, "books", Book.class);
+    public BookRepository(MongoClient client, MongoDatabase db) {
+        super(client, db, "books", Book.class);
     }
 
     @Override
@@ -28,7 +29,7 @@ public class BookRepository extends MongoRepository<Book> {
     }
 
     public boolean existsByIsbn(String isbn) {
-        return collection.countDocuments(eq("isbn", isbn)) > 0;
+        return collection.find(eq("isbn", isbn)).limit(1).first() != null;
     }
 
     public Document getBookWithCopies(String bookId) {

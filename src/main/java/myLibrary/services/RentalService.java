@@ -1,11 +1,14 @@
 package myLibrary.services;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import myLibrary.enums.BookStatus;
 import myLibrary.enums.RentalStatus;
 import myLibrary.models.BookCopy;
 import myLibrary.models.Reader;
 import myLibrary.models.Rental;
 import myLibrary.repositories.BookCopyRepository;
+import myLibrary.repositories.ReaderRepository;
 import myLibrary.repositories.RentalRepository;
 import org.bson.Document;
 
@@ -16,37 +19,75 @@ public class RentalService {
 
     private final RentalRepository rentalRepo;
     private final BookCopyRepository copyRepo;
+    private final ReaderRepository readerRepo;
 
-    public RentalService(RentalRepository rentalRepo, BookCopyRepository copyRepo) {
+    public RentalService(RentalRepository rentalRepo, BookCopyRepository copyRepo, ReaderRepository readerRepo) {
         this.rentalRepo = rentalRepo;
         this.copyRepo = copyRepo;
+        this.readerRepo = readerRepo;
     }
 
+    /**
+     * Wypożyczenie książki (transakcja w repozytorium)
+     */
     public void rent(Reader reader, BookCopy copy, LocalDate dueDate) {
 
-        if (rentalRepo.hasActiveRental(reader.getId(), copy.getId()))
-            throw new IllegalStateException("Egzemplarz już wypożyczony.");
+        if (reader == null)
+            throw new IllegalArgumentException("Reader cannot be null");
 
-        if (copy.getStatus() != BookStatus.AVAILABLE)
-            throw new IllegalStateException("Egzemplarz niedostępny.");
+        if (copy == null)
+            throw new IllegalArgumentException("Book copy cannot be null");
 
-        copy.setStatus(BookStatus.RENTED);
-        copyRepo.update(copy);
+        if (dueDate == null)
+            throw new IllegalArgumentException("Due date cannot be null");
 
-        Rental rental = new Rental(reader, copy, LocalDate.now(), dueDate);
-        rentalRepo.insert(rental);
+        boolean ok = rentalRepo.tryRent(reader, copy, dueDate);
+
+        if (!ok)
+            throw new IllegalStateException("Nie można wypożyczyć książki: " +
+                    "kopii brak lub limit został osiągnięty.");
     }
 
+    /**
+     * Zwrot książki — TERAZ również transakcyjny i bezpieczny.
+     */
     public void returnBook(String rentalId) {
-        Rental rental = rentalRepo.findById(rentalId);
 
+        // 1) Pobranie wypożyczenia
+        Rental rental = rentalRepo.findById(rentalId);
+        if (rental == null)
+            throw new IllegalArgumentException("Rental not found: " + rentalId);
+
+        if (rental.getStatus() != RentalStatus.ACTIVE) {
+            throw new IllegalStateException(
+                    "Rental is not active. Cannot return. Status = " + rental.getStatus()
+            );
+        }
+
+        // 2) Pobranie kopii książki
+        BookCopy copy = copyRepo.findById(rental.getBookCopyId());
+        if (copy == null)
+            throw new IllegalStateException("BookCopy not found: " + rental.getBookCopyId());
+
+        // 3) Aktualizacja wypożyczenia
         rental.setStatus(RentalStatus.RETURNED);
         rental.setReturnDate(LocalDate.now());
         rentalRepo.update(rental);
 
-        BookCopy copy = copyRepo.findById(rental.getBookCopyId());
+        // 4) Zmiana statusu kopii
         copy.setStatus(BookStatus.AVAILABLE);
         copyRepo.update(copy);
+
+        // 5) ⭐ Zmniejszenie licznika aktywnych wypożyczeń — ATOMICZNIE
+        readerRepo.getCollection().updateOne(
+                Filters.eq("_id", rental.getReaderId()),
+                Updates.inc("activeRentals", -1)
+        );
+    }
+
+
+    public List<Rental> findActiveRentalsByReader(String readerId) {
+        return rentalRepo.findActiveByReader(readerId);
     }
 
     public Document getRentalDetails(String rentalId) {
@@ -60,7 +101,4 @@ public class RentalService {
     public List<Rental> findActiveRentals() {
         return rentalRepo.findActiveRentals();
     }
-
 }
-
-

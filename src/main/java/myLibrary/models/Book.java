@@ -21,7 +21,6 @@ public class Book {
     private String author;
     private String publisher;
 
-    @BsonRepresentation(org.bson.BsonType.STRING)
     private BookGenre genre;
 
     private String isbn;
@@ -30,7 +29,9 @@ public class Book {
     private String language;
     private String description;
 
-    public Book() {}
+    public Book() {
+        this.id = UUID.randomUUID().toString();
+    }
 
     public Book(String title, String author, String isbn, BookGenre genre) {
         this.id = UUID.randomUUID().toString();

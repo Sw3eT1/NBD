@@ -1,5 +1,6 @@
 package myLibrary.repositories;
 
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import myLibrary.models.Employee;
 
@@ -10,8 +11,8 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class EmployeeRepository extends MongoRepository<Employee> {
 
-    public EmployeeRepository(MongoDatabase db) {
-        super(db, "employees", Employee.class);
+    public EmployeeRepository(MongoClient client, MongoDatabase db) {
+        super(client, db, "employees", Employee.class);
     }
 
     @Override

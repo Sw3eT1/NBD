@@ -4,5 +4,5 @@ import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
 @BsonDiscriminator("KID")
 public class ReaderTypeKid extends ReaderType {
-    public ReaderTypeKid() { super("KID", 3); }
+    public ReaderTypeKid() { super("KID", 3); this.setId("KID");  }
 }

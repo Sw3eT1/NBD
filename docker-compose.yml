@@ -9,8 +9,6 @@ services:
     container_name: mongo1
     hostname: mongo1
     networks: [mongonet]
-    ports:
-      - "27017:27017"
     volumes:
       - mongo1-data:/data/db
       - mongo1-config:/data/configdb
@@ -29,8 +27,6 @@ services:
     container_name: mongo2
     hostname: mongo2
     networks: [mongonet]
-    ports:
-      - "27018:27017"
     volumes:
       - mongo2-data:/data/db
       - mongo2-config:/data/configdb
@@ -49,8 +45,6 @@ services:
     container_name: mongo3
     hostname: mongo3
     networks: [mongonet]
-    ports:
-      - "27019:27017"
     volumes:
       - mongo3-data:/data/db
       - mongo3-config:/data/configdb
@@ -90,6 +84,19 @@ services:
         ';
         echo 'Replica set initialization DONE.';
       "
+
+  test-runner:
+    image: maven:3.9.6-eclipse-temurin-21
+    container_name: test-runner
+    networks: [mongonet]
+    depends_on:
+      init-replica:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: [ "mvn", "test" ]
+
 
 volumes:
   mongo1-data:
