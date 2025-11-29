@@ -54,7 +54,7 @@ public class LibraryFullIntegrationTest {
                                 .register(BookGenre.class)
                                 .register(BookStatus.class)
                                 .register(RentalStatus.class)
-                                .register(ReaderType.class)     // jeżeli masz enum lub klasę abstrakcyjną
+                                .register(ReaderType.class)
                                 .automatic(true)
                                 .build()
                 )
@@ -66,10 +66,9 @@ public class LibraryFullIntegrationTest {
                 .build();
 
         client = MongoClients.create(settings);
-
         db = client.getDatabase("library_test_db");
 
-        // Clean DB
+        // Clean DB (Mongo)
         db.getCollection("libraries").drop();
         db.getCollection("books").drop();
         db.getCollection("bookCopies").drop();
@@ -78,16 +77,14 @@ public class LibraryFullIntegrationTest {
         db.getCollection("rentals").drop();
         db.getCollection("readerTypes").drop();
 
-        // Init repositories
         LibraryRepository libraryRepo = new LibraryRepository(client,db);
-        BookRepository bookRepo = new BookRepository(client,db);
+        BookRepository bookRepo = new CachedBookRepository(client,db);
+        ((CachedBookRepository) bookRepo).clearCache();
         BookCopyRepository copyRepo = new BookCopyRepository(client,db);
         EmployeeRepository employeeRepo = new EmployeeRepository(client,db);
         ReaderRepository readerRepo = new ReaderRepository(client, db);
         RentalRepository rentalRepo = new RentalRepository(client, db);
         ReaderTypeRepository readerTypeRepo = new ReaderTypeRepository(client, db);
-
-        // Init services
         libraryService = new LibraryService(libraryRepo);
         bookService = new BookService(bookRepo, copyRepo);
         employeeService = new EmployeeService(employeeRepo);

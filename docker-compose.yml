@@ -9,6 +9,9 @@ services:
     container_name: mongo1
     hostname: mongo1
     networks: [mongonet]
+    ports:
+      - "27017:27017"
+
     volumes:
       - mongo1-data:/data/db
       - mongo1-config:/data/configdb
@@ -58,6 +61,21 @@ services:
       timeout: 5s
       retries: 20
 
+
+  redis:
+    image: redis:latest
+    container_name: redis-cache
+    hostname: redis
+    networks: [mongonet]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
   init-replica:
     image: mongo:8.0.1
     container_name: init-replica
@@ -92,6 +110,8 @@ services:
     depends_on:
       init-replica:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
     working_dir: /app
