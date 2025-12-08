@@ -54,7 +54,7 @@ public class LibraryFullIntegrationTest {
                                 .register(BookGenre.class)
                                 .register(BookStatus.class)
                                 .register(RentalStatus.class)
-                                .register(ReaderType.class)     // jeżeli masz enum lub klasę abstrakcyjną
+                                .register(ReaderType.class)
                                 .automatic(true)
                                 .build()
                 )
