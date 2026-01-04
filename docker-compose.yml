@@ -13,9 +13,16 @@ services:
     ports:
       - "9042:9042"
     volumes:
-      - cassandra-node1-data:/var/lib/cassandra
+      - cassandra1_data:/var/lib/cassandra
     networks:
-      - cassandra-net
+      cassandranet:
+        ipv4_address: 172.24.0.10
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool statusgossip | grep -q running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   cassandra-node2:
     image: cassandra:4.1
@@ -29,13 +36,27 @@ services:
     depends_on:
       - cassandra-node1
     volumes:
-      - cassandra-node2-data:/var/lib/cassandra
+      - cassandra2_data:/var/lib/cassandra
     networks:
-      - cassandra-net
+      cassandranet:
+        ipv4_address: 172.24.0.11
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool statusgossip | grep -q running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 networks:
-  cassandra-net:
+  cassandranet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.24.0.0/16
 
 volumes:
-  cassandra-node1-data:
-  cassandra-node2-data:
+  cassandra1_data:
+    driver: local
+  cassandra2_data:
+    driver: local
