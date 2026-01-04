@@ -1,16 +1,13 @@
 package myLibrary.services;
 
 import myLibrary.models.ReaderType;
-import myLibrary.repositories.MongoRepository;
-
-import java.util.List;
-import java.util.UUID;
+import myLibrary.repositories.ReaderTypeRepository;
 
 public class ReaderTypeService {
 
-    private final MongoRepository<ReaderType> repo;
+    private final ReaderTypeRepository repo;
 
-    public ReaderTypeService(MongoRepository<ReaderType> repo) {
+    public ReaderTypeService(ReaderTypeRepository repo) {
         this.repo = repo;
     }
 
@@ -22,15 +19,11 @@ public class ReaderTypeService {
         repo.update(type);
     }
 
-    public void deleteReaderType(UUID id) {
-        repo.delete(id.toString());
+    public void deleteReaderType(String id) {
+        repo.delete(id);
     }
 
-    public ReaderType getReaderType(UUID id) {
-        return repo.findById(id.toString());
-    }
-
-    public List<ReaderType> findAll() {
-        return repo.findAll();
+    public ReaderType getReaderType(String id) {
+        return repo.findById(id);
     }
 }

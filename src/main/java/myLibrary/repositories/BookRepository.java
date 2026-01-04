@@ -1,46 +1,88 @@
 package myLibrary.repositories;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+import myLibrary.enums.BookGenre;
 import myLibrary.models.Book;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.List;
+public class BookRepository {
 
-import static com.mongodb.client.model.Aggregates.lookup;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.*;
+    private final CqlSession session;
 
-public class BookRepository extends MongoRepository<Book> {
+    private final PreparedStatement insertStmt;
+    private final PreparedStatement selectByIdStmt;
+    private final PreparedStatement deleteStmt;
 
-    public BookRepository(MongoClient client, MongoDatabase db) {
-        super(client, db, "books", Book.class);
-    }
-
-    @Override
-    public void update(Book book) {
-        collection.replaceOne(eq("_id", book.getId()), book);
-    }
-
-    public List<Book> findByTitle(String title) {
-        return collection.find(regex("title", title, "i")).into(new ArrayList<>());
-    }
-
-    public boolean existsByIsbn(String isbn) {
-        return collection.find(eq("isbn", isbn)).limit(1).first() != null;
-    }
-
-    public Document getBookWithCopies(String bookId) {
-
-        List<Bson> pipeline = List.of(
-                match(eq("_id", bookId)),
-                lookup("bookCopies", "_id", "bookId", "copies")
+    public BookRepository(CqlSession session) {
+        this.session = session;
+        this.insertStmt = session.prepare(
+                "INSERT INTO library.books_by_id (" +
+                        "book_id, title, author, publisher, genre, isbn, " +
+                        "publication_year, pages, language, description" +
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        return db.getCollection("books", Document.class)
-                .aggregate(pipeline)
-                .first();
+        this.selectByIdStmt = session.prepare(
+                "SELECT book_id, title, author, publisher, genre, isbn, " +
+                        "publication_year, pages, language, description " +
+                        "FROM library.books_by_id WHERE book_id = ?"
+        );
+
+        this.deleteStmt = session.prepare(
+                "DELETE FROM library.books_by_id WHERE book_id = ?"
+        );
+    }
+
+    // CREATE
+    public void insert(Book book) {
+        session.execute(insertStmt.bind(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getPublisher(),
+                book.getGenre() != null ? book.getGenre().name() : null,
+                book.getIsbn(),
+                book.getPublicationYear(),
+                book.getPages(),
+                book.getLanguage(),
+                book.getDescription()
+        ));
+    }
+
+    // READ
+    public Book findById(String id) {
+        Row row = session.execute(selectByIdStmt.bind(id)).one();
+        if (row == null) {
+            return null;
+        }
+
+        Book book = new Book();
+        book.setId(row.getString("book_id"));
+        book.setTitle(row.getString("title"));
+        book.setAuthor(row.getString("author"));
+        book.setPublisher(row.getString("publisher"));
+
+        String genreStr = row.getString("genre");
+        if (genreStr != null) {
+            book.setGenre(BookGenre.valueOf(genreStr));
+        }
+
+        book.setIsbn(row.getString("isbn"));
+        book.setPublicationYear(row.getInt("publication_year"));
+        book.setPages(row.getInt("pages"));
+        book.setLanguage(row.getString("language"));
+        book.setDescription(row.getString("description"));
+
+        return book;
+    }
+
+    // UPDATE
+    public void update(Book book) {
+        insert(book);
+    }
+
+    // DELETE
+    public void delete(String id) {
+        session.execute(deleteStmt.bind(id));
     }
 }

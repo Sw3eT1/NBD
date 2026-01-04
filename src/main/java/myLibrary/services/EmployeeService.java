@@ -3,9 +3,6 @@ package myLibrary.services;
 import myLibrary.models.Employee;
 import myLibrary.repositories.EmployeeRepository;
 
-import java.util.List;
-import java.util.UUID;
-
 public class EmployeeService {
 
     private final EmployeeRepository repo;
@@ -15,9 +12,8 @@ public class EmployeeService {
     }
 
     public void addEmployee(Employee employee) {
-        if (repo.existsByEmail(employee.getEmail()))
-            throw new IllegalArgumentException("Email already exists.");
-
+        // W Cassandrze brak łatwego sprawdzania unikalności email,
+        // więc pomijamy walidację existsByEmail z Mongo.
         repo.insert(employee);
     }
 
@@ -25,23 +21,11 @@ public class EmployeeService {
         repo.update(employee);
     }
 
-    public void deleteEmployee(UUID id) {
-        repo.delete(id.toString());
+    public void deleteEmployee(String libraryId, String employeeId) {
+        repo.delete(libraryId, employeeId);
     }
 
-    public Employee getEmployee(UUID id) {
-        return repo.findById(id.toString());
-    }
-
-    public List<Employee> findAll() {
-        return repo.findAll();
-    }
-
-    public List<Employee> findBySurname(String surname) {
-        return repo.findBySurname(surname);
-    }
-
-    public List<Employee> findByPosition(String position) {
-        return repo.findByPosition(position);
+    public Employee getEmployee(String libraryId, String employeeId) {
+        return repo.findById(libraryId, employeeId);
     }
 }

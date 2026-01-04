@@ -1,7 +1,5 @@
 package myLibrary.services;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 import myLibrary.enums.BookStatus;
 import myLibrary.enums.RentalStatus;
 import myLibrary.models.BookCopy;
@@ -10,10 +8,8 @@ import myLibrary.models.Rental;
 import myLibrary.repositories.BookCopyRepository;
 import myLibrary.repositories.ReaderRepository;
 import myLibrary.repositories.RentalRepository;
-import org.bson.Document;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public class RentalService {
 
@@ -21,40 +17,52 @@ public class RentalService {
     private final BookCopyRepository copyRepo;
     private final ReaderRepository readerRepo;
 
-    public RentalService(RentalRepository rentalRepo, BookCopyRepository copyRepo, ReaderRepository readerRepo) {
+    public RentalService(RentalRepository rentalRepo,
+                         BookCopyRepository copyRepo,
+                         ReaderRepository readerRepo) {
         this.rentalRepo = rentalRepo;
         this.copyRepo = copyRepo;
         this.readerRepo = readerRepo;
     }
 
     /**
-     * Wypożyczenie książki (transakcja w repozytorium)
+     * Proste wypożyczenie książki z użyciem CRUD (bez transakcji Mongo).
      */
-    public void rent(Reader reader, BookCopy copy, LocalDate dueDate) {
+    public Rental rent(Reader reader, BookCopy copy, LocalDate dueDate) {
 
         if (reader == null)
             throw new IllegalArgumentException("Reader cannot be null");
-
         if (copy == null)
             throw new IllegalArgumentException("Book copy cannot be null");
-
         if (dueDate == null)
             throw new IllegalArgumentException("Due date cannot be null");
 
-        boolean ok = rentalRepo.tryRent(reader, copy, dueDate);
+        // 1) Utwórz wypożyczenie
+        Rental rental = new Rental(reader, copy, LocalDate.now(), dueDate);
+        rentalRepo.insert(rental);
 
-        if (!ok)
-            throw new IllegalStateException("Nie można wypożyczyć książki: " +
-                    "kopii brak lub limit został osiągnięty.");
+        // 2) Zmień status egzemplarza
+        copy.setStatus(BookStatus.RENTED);
+        copyRepo.update(copy);
+
+        // 3) Zwiększ licznik aktywnych wypożyczeń czytelnika
+        reader.setActiveRentals(reader.getActiveRentals() + 1);
+        readerRepo.update(reader);
+
+        return rental;
     }
 
     /**
-     * Zwrot książki — TERAZ również transakcyjny i bezpieczny.
+     * Zwrot książki – logiczna operacja złożona z CRUD-ów.
      */
-    public void returnBook(String rentalId) {
+    public void returnBook(String readerId,
+                           String rentalId,
+                           String libraryId,
+                           String bookId,
+                           String copyId) {
 
-        // 1) Pobranie wypożyczenia
-        Rental rental = rentalRepo.findById(rentalId);
+        // 1) Pobierz wypożyczenie
+        Rental rental = rentalRepo.findById(readerId, rentalId);
         if (rental == null)
             throw new IllegalArgumentException("Rental not found: " + rentalId);
 
@@ -64,41 +72,32 @@ public class RentalService {
             );
         }
 
-        // 2) Pobranie kopii książki
-        BookCopy copy = copyRepo.findById(rental.getBookCopyId());
+        // 2) Pobierz kopię
+        BookCopy copy = copyRepo.findById(libraryId, bookId, copyId);
         if (copy == null)
-            throw new IllegalStateException("BookCopy not found: " + rental.getBookCopyId());
+            throw new IllegalStateException("BookCopy not found: " + copyId);
 
-        // 3) Aktualizacja wypożyczenia
+        // 3) Oznacz wypożyczenie jako zwrócone
         rental.setStatus(RentalStatus.RETURNED);
         rental.setReturnDate(LocalDate.now());
         rentalRepo.update(rental);
 
-        // 4) Zmiana statusu kopii
+        // 4) Oznacz kopię jako dostępną
         copy.setStatus(BookStatus.AVAILABLE);
         copyRepo.update(copy);
 
-        // 5) ⭐ Zmniejszenie licznika aktywnych wypożyczeń — ATOMICZNIE
-        readerRepo.getCollection().updateOne(
-                Filters.eq("_id", rental.getReaderId()),
-                Updates.inc("activeRentals", -1)
-        );
+        // 5) Zmniejsz licznik aktywnych wypożyczeń
+        Reader reader = readerRepo.findById(libraryId, readerId);
+        reader.setActiveRentals(Math.max(0, reader.getActiveRentals() - 1));
+        readerRepo.update(reader);
     }
 
-
-    public List<Rental> findActiveRentalsByReader(String readerId) {
-        return rentalRepo.findActiveByReader(readerId);
+    // Proste przekierowania do CRUD w repo (opcjonalnie, jeśli chcesz)
+    public Rental findById(String readerId, String rentalId) {
+        return rentalRepo.findById(readerId, rentalId);
     }
 
-    public Document getRentalDetails(String rentalId) {
-        return rentalRepo.getRentalDetails(rentalId);
-    }
-
-    public Rental findById(String id) {
-        return rentalRepo.findById(id);
-    }
-
-    public List<Rental> findActiveRentals() {
-        return rentalRepo.findActiveRentals();
+    public void delete(String readerId, String rentalId) {
+        rentalRepo.delete(readerId, rentalId);
     }
 }

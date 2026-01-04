@@ -1,34 +1,89 @@
 package myLibrary.repositories;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+import myLibrary.models.Address;
 import myLibrary.models.Employee;
 
-import java.util.ArrayList;
-import java.util.List;
+public class EmployeeRepository {
 
-import static com.mongodb.client.model.Filters.eq;
+    private final CqlSession session;
 
-public class EmployeeRepository extends MongoRepository<Employee> {
+    private final PreparedStatement insertStmt;
+    private final PreparedStatement selectByIdStmt;
+    private final PreparedStatement deleteStmt;
 
-    public EmployeeRepository(MongoClient client, MongoDatabase db) {
-        super(client, db, "employees", Employee.class);
+    public EmployeeRepository(CqlSession session) {
+        this.session = session;
+
+        this.insertStmt = session.prepare(
+                "INSERT INTO library.employees_by_library (" +
+                        "library_id, employee_id, name, surname, email, phone, " +
+                        "address, position, salary, hire_date" +
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+
+        this.selectByIdStmt = session.prepare(
+                "SELECT library_id, employee_id, name, surname, email, phone, " +
+                        "address, position, salary, hire_date " +
+                        "FROM library.employees_by_library " +
+                        "WHERE library_id = ? AND employee_id = ?"
+        );
+
+        this.deleteStmt = session.prepare(
+                "DELETE FROM library.employees_by_library " +
+                        "WHERE library_id = ? AND employee_id = ?"
+        );
     }
 
-    @Override
+    // CREATE
+    public void insert(Employee employee) {
+        session.execute(insertStmt.bind(
+                employee.getLibraryId(),
+                employee.getId(),
+                employee.getName(),
+                employee.getSurname(),
+                employee.getEmail(),
+                employee.getPhone(),
+                employee.getAddress(),      // UDT address
+                employee.getPosition(),
+                employee.getSalary(),
+                employee.getHireDate()
+        ));
+    }
+
+    // READ
+    public Employee findById(String libraryId, String employeeId) {
+        Row row = session.execute(selectByIdStmt.bind(libraryId, employeeId)).one();
+        if (row == null) {
+            return null;
+        }
+
+        Employee e = new Employee();
+        e.setLibraryId(row.getString("library_id"));
+        e.setId(row.getString("employee_id"));
+        e.setName(row.getString("name"));
+        e.setSurname(row.getString("surname"));
+        e.setEmail(row.getString("email"));
+        e.setPhone(row.getString("phone"));
+
+        Address address = row.get("address", Address.class);
+        e.setAddress(address);
+
+        e.setPosition(row.getString("position"));
+        e.setSalary(row.getDouble("salary"));
+        e.setHireDate(row.getLocalDate("hire_date"));
+
+        return e;
+    }
+
+    // UPDATE
     public void update(Employee employee) {
-        collection.replaceOne(eq("_id", employee.getId()), employee);
+        insert(employee);
     }
 
-    public List<Employee> findBySurname(String surname) {
-        return collection.find(eq("surname", surname)).into(new ArrayList<>());
-    }
-
-    public List<Employee> findByPosition(String position) {
-        return collection.find(eq("position", position)).into(new ArrayList<>());
-    }
-
-    public boolean existsByEmail(String email) {
-        return collection.countDocuments(eq("email", email)) > 0;
+    // DELETE
+    public void delete(String libraryId, String employeeId) {
+        session.execute(deleteStmt.bind(libraryId, employeeId));
     }
 }

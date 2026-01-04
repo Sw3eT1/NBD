@@ -1,52 +1,89 @@
 package myLibrary.repositories;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+import myLibrary.models.Address;
 import myLibrary.models.Reader;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.List;
+public class ReaderRepository {
 
-import static com.mongodb.client.model.Aggregates.lookup;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.eq;
+    private final CqlSession session;
 
-public class ReaderRepository extends MongoRepository<Reader> {
+    private final PreparedStatement insertStmt;
+    private final PreparedStatement selectByIdStmt;
+    private final PreparedStatement deleteStmt;
 
-    public ReaderRepository(MongoClient client, MongoDatabase db) {
-        super(client, db, "readers", Reader.class);
-    }
+    public ReaderRepository(CqlSession session) {
+        this.session = session;
 
-    @Override
-    public void update(Reader reader) {
-        collection.replaceOne(eq("_id", reader.getId()), reader);
-    }
-
-    public Reader findByCardNumber(String cardNumber) {
-        return collection.find(eq("cardNumber", cardNumber)).first();
-    }
-
-    public List<Reader> findBySurname(String surname) {
-        return collection.find(eq("surname", surname)).into(new ArrayList<>());
-    }
-
-    public MongoCollection<Reader> getCollection() {
-        return db.getCollection("readers", Reader.class);
-    }
-
-
-    public Document getReaderWithType(String readerId) {
-
-        List<Bson> pipeline = List.of(
-                match(eq("_id", readerId)),
-                lookup("readerTypes", "readerTypeId", "_id", "type")
+        this.insertStmt = session.prepare(
+                "INSERT INTO library.readers_by_library (" +
+                        "library_id, reader_id, name, surname, email, phone, " +
+                        "address, card_number, reader_type_id, active_rentals" +
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        return db.getCollection("readers", Document.class)
-                .aggregate(pipeline)
-                .first();
+        this.selectByIdStmt = session.prepare(
+                "SELECT library_id, reader_id, name, surname, email, phone, " +
+                        "address, card_number, reader_type_id, active_rentals " +
+                        "FROM library.readers_by_library " +
+                        "WHERE library_id = ? AND reader_id = ?"
+        );
+
+        this.deleteStmt = session.prepare(
+                "DELETE FROM library.readers_by_library " +
+                        "WHERE library_id = ? AND reader_id = ?"
+        );
+    }
+
+    // CREATE
+    public void insert(Reader reader) {
+        session.execute(insertStmt.bind(
+                reader.getLibraryId(),
+                reader.getId(),
+                reader.getName(),
+                reader.getSurname(),
+                reader.getEmail(),
+                reader.getPhone(),
+                reader.getAddress(),          // UDT Address
+                reader.getCardNumber(),
+                reader.getReaderTypeId(),
+                reader.getActiveRentals()
+        ));
+    }
+
+    // READ
+    public Reader findById(String libraryId, String readerId) {
+        Row row = session.execute(selectByIdStmt.bind(libraryId, readerId)).one();
+        if (row == null) {
+            return null;
+        }
+
+        Reader r = new Reader();
+        r.setLibraryId(row.getString("library_id"));
+        r.setId(row.getString("reader_id"));
+        r.setName(row.getString("name"));
+        r.setSurname(row.getString("surname"));
+        r.setEmail(row.getString("email"));
+        r.setPhone(row.getString("phone"));
+
+        Address address = row.get("address", Address.class);
+        r.setAddress(address);
+
+        r.setCardNumber(row.getString("card_number"));
+        r.setReaderTypeId(row.getString("reader_type_id"));
+        r.setActiveRentals(row.getInt("active_rentals"));
+
+        return r;
+    }
+
+    // UPDATE = upsert
+    public void update(Reader reader) {
+        insert(reader);
+    }
+
+    // DELETE
+    public void delete(String libraryId, String readerId) {
+        session.execute(deleteStmt.bind(libraryId, readerId));
     }
 }

@@ -1,172 +1,87 @@
 package myLibrary.repositories;
 
-import com.mongodb.ReadConcern;
-import com.mongodb.ReadPreference;
-import com.mongodb.TransactionOptions;
-import com.mongodb.WriteConcern;
-import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
-import com.mongodb.client.model.*;
-
-import myLibrary.enums.BookStatus;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
 import myLibrary.enums.RentalStatus;
-import myLibrary.models.BookCopy;
-import myLibrary.models.Reader;
 import myLibrary.models.Rental;
 
-import org.bson.Document;
-import org.bson.conversions.Bson;
+public class RentalRepository {
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+    private final CqlSession session;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Updates.*;
+    private final PreparedStatement insertStmt;
+    private final PreparedStatement selectByIdStmt;
+    private final PreparedStatement deleteStmt;
 
-public class RentalRepository extends MongoRepository<Rental> {
+    public RentalRepository(CqlSession session) {
+        this.session = session;
 
-    public RentalRepository(MongoClient client, MongoDatabase db) {
-        super(client, db, "rentals", Rental.class);
-    }
-
-
-    @Override
-    public void update(Rental rental) {
-        var result = collection.replaceOne(eq("_id", rental.getId()), rental);
-        if (result.getMatchedCount() == 0) {
-            throw new IllegalStateException("Rental not found for id: " + rental.getId());
-        }
-    }
-
-    public boolean hasActiveRental(String readerId, String copyId) {
-        return collection.countDocuments(and(
-                eq("readerId", readerId),
-                eq("bookCopyId", copyId),
-                eq("status", RentalStatus.ACTIVE.toString())
-        )) > 0;
-    }
-
-    public List<Rental> findActiveRentals() {
-        return collection.find(eq("status", RentalStatus.ACTIVE.toString()))
-                .into(new ArrayList<>());
-    }
-
-    public List<Rental> findActiveByReader(String readerId) {
-        return collection.find(and(
-                eq("readerId", readerId),
-                eq("status", RentalStatus.ACTIVE.toString())
-        )).into(new ArrayList<>());
-    }
-
-    // findById w rodzicu już istnieje – nie nadpisujemy
-
-    public Document getRentalDetails(String rentalId) {
-
-        List<Bson> pipeline = List.of(
-                match(eq("_id", rentalId)),
-                lookup("bookCopies", "bookCopyId", "_id", "copy"),
-                unwind("$copy"),
-                lookup("readers", "readerId", "_id", "reader"),
-                unwind("$reader"),
-                lookup("books", "copy.bookId", "_id", "book"),
-                unwind("$book")
+        this.insertStmt = session.prepare(
+                "INSERT INTO library.rentals_by_reader (" +
+                        "reader_id, rental_id, book_copy_id, rental_date, " +
+                        "due_date, return_date, status, fine" +
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        return db.getCollection("rentals", Document.class)
-                .aggregate(pipeline)
-                .first();
+        this.selectByIdStmt = session.prepare(
+                "SELECT reader_id, rental_id, book_copy_id, rental_date, " +
+                        "due_date, return_date, status, fine " +
+                        "FROM library.rentals_by_reader " +
+                        "WHERE reader_id = ? AND rental_id = ?"
+        );
+
+        this.deleteStmt = session.prepare(
+                "DELETE FROM library.rentals_by_reader " +
+                        "WHERE reader_id = ? AND rental_id = ?"
+        );
     }
 
-    /**
-     * Atomiczne wypożyczenie książki:
-     * - sprawdza limit czytelnika
-     * - sprawdza duplikaty
-     * - aktualizuje status egzemplarza
-     * - wstawia rekord wypożyczenia
-     */
-    public boolean tryRent(Reader reader, BookCopy copy, LocalDate dueDate) {
+    // CREATE
+    public void insert(Rental rental) {
+        session.execute(insertStmt.bind(
+                rental.getReaderId(),
+                rental.getId(),
+                rental.getBookCopyId(),
+                rental.getRentalDate(),
+                rental.getDueDate(),
+                rental.getReturnDate(),
+                rental.getStatus() != null ? rental.getStatus().name() : null,
+                rental.getFine()
+        ));
+    }
 
-        TransactionOptions txnOptions = TransactionOptions.builder()
-                .readConcern(ReadConcern.SNAPSHOT)
-                .writeConcern(WriteConcern.MAJORITY)
-                .readPreference(ReadPreference.primary())
-                .build();
-
-        try (ClientSession session = client.startSession()) {
-            return session.withTransaction(() -> {
-
-                String readerId = reader.getId();
-                String copyId = copy.getId();
-
-                MongoCollection<Document> rentals = db.getCollection("rentals");
-                MongoCollection<Document> copies = db.getCollection("bookCopies");
-                MongoCollection<Document> readers = db.getCollection("readers");
-                MongoCollection<Document> types = db.getCollection("readerTypes");
-
-                // 🔥 Pobierz typ czytelnika
-                Document rt = types.find(session, eq("_id", reader.getReaderTypeId())).first();
-                if (rt == null)
-                    throw new IllegalStateException("ReaderType not found");
-
-                int maxBooks = rt.getInteger("maxBooks");
-
-                // 🔥 ATOMICZNE ZWIĘKSZENIE LICZNIKA
-                // Czytelnik dostanie wypożyczenie tylko jeśli activeRentals < maxBooks
-                Document updatedReader = readers.findOneAndUpdate(
-                        session,
-                        and(
-                                eq("_id", readerId),
-                                lt("activeRentals", maxBooks)
-                        ),
-                        combine(
-                                inc("activeRentals", 1)  // atomiczny increment
-                        ),
-                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
-                );
-
-                // jeśli null → limit został osiągnięty
-                if (updatedReader == null)
-                    return false;
-
-                // 🔥 atomiczne zablokowanie książki
-                Document updatedCopy = copies.findOneAndUpdate(
-                        session,
-                        and(
-                                eq("_id", copyId),
-                                eq("status", BookStatus.AVAILABLE.toString())
-                        ),
-                        set("status", BookStatus.RENTED.toString()),
-                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
-                );
-
-                if (updatedCopy == null) {
-                    // wycofaj increment
-                    readers.updateOne(session, eq("_id", readerId), inc("activeRentals", -1));
-                    return false;
-                }
-
-                // 🔥 wstawienie wypożyczenia
-                Rental rental = new Rental(reader, copy, LocalDate.now(), dueDate);
-
-                rentals.insertOne(session, new Document()
-                        .append("_id", rental.getId())
-                        .append("readerId", readerId)
-                        .append("bookCopyId", copyId)
-                        .append("status", rental.getStatus().toString())
-                        .append("fine", rental.getFine())
-                        .append("rentalDate", rental.getRentalDate())
-                        .append("dueDate", rental.getDueDate())
-                );
-
-                return true;
-
-            }, txnOptions);
+    // READ
+    public Rental findById(String readerId, String rentalId) {
+        Row row = session.execute(selectByIdStmt.bind(readerId, rentalId)).one();
+        if (row == null) {
+            return null;
         }
+
+        Rental r = new Rental();
+        r.setReaderId(row.getString("reader_id"));
+        r.setId(row.getString("rental_id"));
+        r.setBookCopyId(row.getString("book_copy_id"));
+        r.setRentalDate(row.getLocalDate("rental_date"));
+        r.setDueDate(row.getLocalDate("due_date"));
+        r.setReturnDate(row.getLocalDate("return_date"));
+
+        String statusStr = row.getString("status");
+        if (statusStr != null) {
+            r.setStatus(RentalStatus.valueOf(statusStr));
+        }
+
+        r.setFine(row.getDouble("fine"));
+
+        return r;
     }
 
+    // UPDATE = upsert
+    public void update(Rental rental) {
+        insert(rental);
+    }
+
+    // DELETE
+    public void delete(String readerId, String rentalId) {
+        session.execute(deleteStmt.bind(readerId, rentalId));
+    }
 }

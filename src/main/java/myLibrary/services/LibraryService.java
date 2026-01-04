@@ -2,7 +2,6 @@ package myLibrary.services;
 
 import myLibrary.models.Library;
 import myLibrary.repositories.LibraryRepository;
-import org.bson.types.ObjectId;
 
 public class LibraryService {
 
@@ -22,5 +21,9 @@ public class LibraryService {
 
     public Library find(String id) {
         return repo.findById(id);
+    }
+
+    public void delete(String id) {
+        repo.delete(id);
     }
 }

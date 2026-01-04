@@ -1,52 +1,76 @@
 package myLibrary.repositories;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoDatabase;
-import myLibrary.models.BookCopy;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
 import myLibrary.enums.BookStatus;
-import org.bson.Document;
-import org.bson.conversions.Bson;
+import myLibrary.models.BookCopy;
 
+public class BookCopyRepository {
 
-import java.util.ArrayList;
-import java.util.List;
+    private final CqlSession session;
 
-import static com.mongodb.client.model.Aggregates.lookup;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.*;
+    private final PreparedStatement insertStmt;
+    private final PreparedStatement selectByIdStmt;
+    private final PreparedStatement deleteStmt;
 
-public class BookCopyRepository extends MongoRepository<BookCopy> {
+    public BookCopyRepository(CqlSession session) {
+        this.session = session;
 
-    public BookCopyRepository(MongoClient client, MongoDatabase db) {
-        super(client, db, "bookCopies", BookCopy.class);
-    }
-
-    @Override
-    public void update(BookCopy copy) {
-        collection.replaceOne(eq("_id", copy.getId()), copy);
-    }
-
-    public List<BookCopy> findByBookId(String bookId) {
-        return collection.find(eq("bookId", bookId)).into(new ArrayList<>());
-    }
-
-    public List<BookCopy> findAvailableCopies(String bookId) {
-        return collection.find(and(
-                eq("bookId", bookId),
-                eq("status", BookStatus.AVAILABLE)
-        )).into(new ArrayList<>());
-    }
-
-    public Document getCopyWithBookAndLibrary(String copyId) {
-
-        List<Bson> pipeline = List.of(
-                match(eq("_id", copyId)),
-                lookup("books", "bookId", "_id", "book"),
-                lookup("libraries", "libraryId", "_id", "library")
+        this.insertStmt = session.prepare(
+                "INSERT INTO library.book_copies_by_library (" +
+                        "library_id, book_id, copy_id, status" +
+                        ") VALUES (?, ?, ?, ?)"
         );
 
-        return db.getCollection("bookCopies", Document.class)
-                .aggregate(pipeline)
-                .first();
+        this.selectByIdStmt = session.prepare(
+                "SELECT library_id, book_id, copy_id, status " +
+                        "FROM library.book_copies_by_library " +
+                        "WHERE library_id = ? AND book_id = ? AND copy_id = ?"
+        );
+
+        this.deleteStmt = session.prepare(
+                "DELETE FROM library.book_copies_by_library " +
+                        "WHERE library_id = ? AND book_id = ? AND copy_id = ?"
+        );
+    }
+
+    // CREATE
+    public void insert(BookCopy copy) {
+        session.execute(insertStmt.bind(
+                copy.getLibraryId(),
+                copy.getBookId(),
+                copy.getId(),
+                copy.getStatus() != null ? copy.getStatus().name() : null
+        ));
+    }
+
+    // READ
+    public BookCopy findById(String libraryId, String bookId, String copyId) {
+        Row row = session.execute(selectByIdStmt.bind(libraryId, bookId, copyId)).one();
+        if (row == null) {
+            return null;
+        }
+
+        BookCopy copy = new BookCopy();
+        copy.setLibraryId(row.getString("library_id"));
+        copy.setBookId(row.getString("book_id"));
+        copy.setId(row.getString("copy_id"));
+
+        String statusStr = row.getString("status");
+        if (statusStr != null) {
+            copy.setStatus(BookStatus.valueOf(statusStr));
+        }
+
+        return copy;
+    }
+
+    // UPDATE
+    public void update(BookCopy copy) {
+        insert(copy);
+    }
+
+    // DELETE
+    public void delete(String libraryId, String bookId, String copyId) {
+        session.execute(deleteStmt.bind(libraryId, bookId, copyId));
     }
 }
