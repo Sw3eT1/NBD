@@ -1,31 +1,32 @@
 package myLibrary.models;
 
-import com.datastax.oss.driver.api.mapper.annotations.UDT;
+import com.datastax.oss.driver.api.mapper.annotations.Entity;
+import com.datastax.oss.driver.api.mapper.annotations.SchemaHint;
 import com.datastax.oss.driver.api.mapper.annotations.CqlName;
-import com.datastax.oss.driver.api.annotations.Field;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-@UDT(keyspace = "library", name = "address")
+@Entity
 @CqlName("address")
+@SchemaHint(targetElement = SchemaHint.TargetElement.UDT)
 public class Address {
 
-    @Field(name = "house_number")
+    @CqlName("house_number")
     private String houseNumber;
 
-    @Field(name = "street")
+    @CqlName("street")
     private String street;
 
-    @Field(name = "city")
+    @CqlName("city")
     private String city;
 
-    @Field(name = "state")
+    @CqlName("state")
     private String state;
 
-    @Field(name = "zipcode")
+    @CqlName("zipcode")
     private String zipcode;
 
-    @Field(name = "country")
+    @CqlName("country")
     private String country;
 
     public Address() {

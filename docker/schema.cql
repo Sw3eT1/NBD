@@ -3,7 +3,7 @@
 CREATE KEYSPACE IF NOT EXISTS library
 WITH replication = {
 'class': 'NetworkTopologyStrategy',
-'dc1': 2
+'datacenter1': 2
 }
 AND durable_writes = true;
 

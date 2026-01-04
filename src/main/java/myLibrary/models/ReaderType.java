@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity(defaultKeyspace = "library")
 @CqlName("reader_types")
-public abstract class ReaderType {
+public class ReaderType {
 
     @PartitionKey
     @CqlName("reader_type_id")
