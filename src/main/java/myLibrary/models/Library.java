@@ -1,26 +1,40 @@
 package myLibrary.models;
 
+import com.datastax.oss.driver.api.mapper.annotations.CqlName;
+import com.datastax.oss.driver.api.mapper.annotations.Entity;
+import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
-import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.util.UUID;
 
-@BsonDiscriminator
+@Entity(defaultKeyspace = "library")
+@CqlName("libraries_by_id")
 public class Library {
 
-    @BsonId
+    @PartitionKey
+    @CqlName("library_id")
     private String id;
 
+    @CqlName("name")
     private String name;
+
+    @CqlName("address")
     private Address address;
 
+    @CqlName("phone_number")
     private String phoneNumber;
+
+    @CqlName("email")
     private String email;
+
+    @CqlName("website")
     private String website;
 
+    @CqlName("open_on_weekends")
     private boolean openOnWeekends;
+
+    @CqlName("opening_hours")
     private String openingHours;
 
     public Library() {
@@ -41,69 +55,29 @@ public class Library {
         this.openingHours = openingHours;
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
-    public Address getAddress() {
-        return address;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setAddress(Address address) {
-        this.address = address;
-    }
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
+    public boolean isOpenOnWeekends() { return openOnWeekends; }
+    public void setOpenOnWeekends(boolean openOnWeekends) { this.openOnWeekends = openOnWeekends; }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getWebsite() {
-        return website;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-
-    public boolean isOpenOnWeekends() {
-        return openOnWeekends;
-    }
-
-    public void setOpenOnWeekends(boolean openOnWeekends) {
-        this.openOnWeekends = openOnWeekends;
-    }
-
-    public String getOpeningHours() {
-        return openingHours;
-    }
-
-    public void setOpeningHours(String openingHours) {
-        this.openingHours = openingHours;
-    }
+    public String getOpeningHours() { return openingHours; }
+    public void setOpeningHours(String openingHours) { this.openingHours = openingHours; }
 
     @Override
     public String toString() {
@@ -127,11 +101,29 @@ public class Library {
 
         Library library = (Library) o;
 
-        return new EqualsBuilder().append(isOpenOnWeekends(), library.isOpenOnWeekends()).append(getId(), library.getId()).append(getName(), library.getName()).append(getAddress(), library.getAddress()).append(getPhoneNumber(), library.getPhoneNumber()).append(getEmail(), library.getEmail()).append(getWebsite(), library.getWebsite()).append(getOpeningHours(), library.getOpeningHours()).isEquals();
+        return new EqualsBuilder()
+                .append(isOpenOnWeekends(), library.isOpenOnWeekends())
+                .append(getId(), library.getId())
+                .append(getName(), library.getName())
+                .append(getAddress(), library.getAddress())
+                .append(getPhoneNumber(), library.getPhoneNumber())
+                .append(getEmail(), library.getEmail())
+                .append(getWebsite(), library.getWebsite())
+                .append(getOpeningHours(), library.getOpeningHours())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getAddress()).append(getPhoneNumber()).append(getEmail()).append(getWebsite()).append(isOpenOnWeekends()).append(getOpeningHours()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(getId())
+                .append(getName())
+                .append(getAddress())
+                .append(getPhoneNumber())
+                .append(getEmail())
+                .append(getWebsite())
+                .append(isOpenOnWeekends())
+                .append(getOpeningHours())
+                .toHashCode();
     }
 }

@@ -1,19 +1,74 @@
 package myLibrary.models;
 
+import com.datastax.oss.driver.api.mapper.annotations.CqlName;
+import com.datastax.oss.driver.api.mapper.annotations.Entity;
+import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
+import com.datastax.oss.driver.api.mapper.annotations.ClusteringColumn;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
 import java.time.LocalDate;
 
-@BsonDiscriminator("EMPLOYEE")
+@Entity(defaultKeyspace = "library")
+@CqlName("employees_by_library")
 public class Employee extends Person {
 
+    @PartitionKey
+    @CqlName("library_id")
+    @Override
+    public String getLibraryId() {
+        return super.getLibraryId();
+    }
+
+    @ClusteringColumn
+    @CqlName("employee_id")
+    @Override
+    public String getId() {
+        return super.getId();
+    }
+
+    @CqlName("name")
+    @Override
+    public String getName() {
+        return super.getName();
+    }
+
+    @CqlName("surname")
+    @Override
+    public String getSurname() {
+        return super.getSurname();
+    }
+
+    @CqlName("email")
+    @Override
+    public String getEmail() {
+        return super.getEmail();
+    }
+
+    @CqlName("phone")
+    @Override
+    public String getPhone() {
+        return super.getPhone();
+    }
+
+    @CqlName("address")
+    @Override
+    public Address getAddress() {
+        return super.getAddress();
+    }
+
+    @CqlName("position")
     private String position;
+
+    @CqlName("salary")
     private double salary;
+
+    @CqlName("hire_date")
     private LocalDate hireDate;
 
-    public Employee() {}
+    public Employee() {
+        super();
+    }
 
     public Employee(String name, String surname, String email, String phone,
                     Address address, Library library,
@@ -40,7 +95,7 @@ public class Employee extends Person {
                 "position='" + position + '\'' +
                 ", salary=" + salary +
                 ", hireDate=" + hireDate +
-                '}';
+                "} " + super.toString();
     }
 
     @Override
@@ -51,11 +106,21 @@ public class Employee extends Person {
 
         Employee employee = (Employee) o;
 
-        return new EqualsBuilder().appendSuper(super.equals(o)).append(getSalary(), employee.getSalary()).append(getPosition(), employee.getPosition()).append(getHireDate(), employee.getHireDate()).isEquals();
+        return new EqualsBuilder()
+                .appendSuper(super.equals(o))
+                .append(getSalary(), employee.getSalary())
+                .append(getPosition(), employee.getPosition())
+                .append(getHireDate(), employee.getHireDate())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(getPosition()).append(getSalary()).append(getHireDate()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .appendSuper(super.hashCode())
+                .append(getPosition())
+                .append(getSalary())
+                .append(getHireDate())
+                .toHashCode();
     }
 }

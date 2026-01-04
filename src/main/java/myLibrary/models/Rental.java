@@ -1,34 +1,44 @@
 package myLibrary.models;
 
+import com.datastax.oss.driver.api.mapper.annotations.CqlName;
+import com.datastax.oss.driver.api.mapper.annotations.Entity;
+import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
+import com.datastax.oss.driver.api.mapper.annotations.ClusteringColumn;
 import myLibrary.enums.RentalStatus;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonProperty;
-import org.bson.codecs.pojo.annotations.BsonRepresentation;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-@BsonDiscriminator
+@Entity(defaultKeyspace = "library")
+@CqlName("rentals_by_reader")
 public class Rental {
 
-    @BsonId
+    @ClusteringColumn
+    @CqlName("rental_id")
     private String id;
 
-    @BsonProperty("readerId")
+    @PartitionKey
+    @CqlName("reader_id")
     private String readerId;
 
-    @BsonProperty("bookCopyId")
+    @CqlName("book_copy_id")
     private String bookCopyId;
 
+    @CqlName("rental_date")
     private LocalDate rentalDate;
+
+    @CqlName("due_date")
     private LocalDate dueDate;
+
+    @CqlName("return_date")
     private LocalDate returnDate;
 
+    @CqlName("status")
     private RentalStatus status;
 
+    @CqlName("fine")
     private double fine;
 
     public Rental() {
@@ -46,69 +56,29 @@ public class Rental {
         this.status = RentalStatus.ACTIVE;
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getReaderId() { return readerId; }
+    public void setReaderId(String readerId) { this.readerId = readerId; }
 
-    public String getReaderId() {
-        return readerId;
-    }
+    public String getBookCopyId() { return bookCopyId; }
+    public void setBookCopyId(String bookCopyId) { this.bookCopyId = bookCopyId; }
 
-    public void setReaderId(String readerId) {
-        this.readerId = readerId;
-    }
+    public LocalDate getRentalDate() { return rentalDate; }
+    public void setRentalDate(LocalDate rentalDate) { this.rentalDate = rentalDate; }
 
-    public String getBookCopyId() {
-        return bookCopyId;
-    }
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 
-    public void setBookCopyId(String bookCopyId) {
-        this.bookCopyId = bookCopyId;
-    }
+    public LocalDate getReturnDate() { return returnDate; }
+    public void setReturnDate(LocalDate returnDate) { this.returnDate = returnDate; }
 
-    public LocalDate getRentalDate() {
-        return rentalDate;
-    }
+    public RentalStatus getStatus() { return status; }
+    public void setStatus(RentalStatus status) { this.status = status; }
 
-    public void setRentalDate(LocalDate rentalDate) {
-        this.rentalDate = rentalDate;
-    }
-
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public LocalDate getReturnDate() {
-        return returnDate;
-    }
-
-    public void setReturnDate(LocalDate returnDate) {
-        this.returnDate = returnDate;
-    }
-
-    public RentalStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RentalStatus status) {
-        this.status = status;
-    }
-
-    public double getFine() {
-        return fine;
-    }
-
-    public void setFine(double fine) {
-        this.fine = fine;
-    }
+    public double getFine() { return fine; }
+    public void setFine(double fine) { this.fine = fine; }
 
     @Override
     public String toString() {
@@ -132,11 +102,29 @@ public class Rental {
 
         Rental rental = (Rental) o;
 
-        return new EqualsBuilder().append(getFine(), rental.getFine()).append(getId(), rental.getId()).append(getReaderId(), rental.getReaderId()).append(getBookCopyId(), rental.getBookCopyId()).append(getRentalDate(), rental.getRentalDate()).append(getDueDate(), rental.getDueDate()).append(getReturnDate(), rental.getReturnDate()).append(getStatus(), rental.getStatus()).isEquals();
+        return new EqualsBuilder()
+                .append(getFine(), rental.getFine())
+                .append(getId(), rental.getId())
+                .append(getReaderId(), rental.getReaderId())
+                .append(getBookCopyId(), rental.getBookCopyId())
+                .append(getRentalDate(), rental.getRentalDate())
+                .append(getDueDate(), rental.getDueDate())
+                .append(getReturnDate(), rental.getReturnDate())
+                .append(getStatus(), rental.getStatus())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getReaderId()).append(getBookCopyId()).append(getRentalDate()).append(getDueDate()).append(getReturnDate()).append(getStatus()).append(getFine()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(getId())
+                .append(getReaderId())
+                .append(getBookCopyId())
+                .append(getRentalDate())
+                .append(getDueDate())
+                .append(getReturnDate())
+                .append(getStatus())
+                .append(getFine())
+                .toHashCode();
     }
 }

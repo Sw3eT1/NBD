@@ -1,30 +1,35 @@
 package myLibrary.models;
 
+import com.datastax.oss.driver.api.mapper.annotations.UDT;
+import com.datastax.oss.driver.api.mapper.annotations.CqlName;
+import com.datastax.oss.driver.api.annotations.Field;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bson.codecs.pojo.annotations.BsonProperty;
 
+@UDT(keyspace = "library", name = "address")
+@CqlName("address")
 public class Address {
 
-    @BsonProperty("houseNumber")
+    @Field(name = "house_number")
     private String houseNumber;
 
-    @BsonProperty("street")
+    @Field(name = "street")
     private String street;
 
-    @BsonProperty("city")
+    @Field(name = "city")
     private String city;
 
-    @BsonProperty("state")
+    @Field(name = "state")
     private String state;
 
-    @BsonProperty("zipcode")
+    @Field(name = "zipcode")
     private String zipcode;
 
-    @BsonProperty("country")
+    @Field(name = "country")
     private String country;
 
-    public Address() {}
+    public Address() {
+    }
 
     public Address(String houseNumber, String street, String city,
                    String state, String zipcode, String country) {
@@ -54,7 +59,6 @@ public class Address {
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
 
-
     @Override
     public String toString() {
         return "Address{" +
@@ -75,11 +79,25 @@ public class Address {
 
         Address address = (Address) o;
 
-        return new EqualsBuilder().append(getHouseNumber(), address.getHouseNumber()).append(getStreet(), address.getStreet()).append(getCity(), address.getCity()).append(getState(), address.getState()).append(getZipcode(), address.getZipcode()).append(getCountry(), address.getCountry()).isEquals();
+        return new EqualsBuilder()
+                .append(getHouseNumber(), address.getHouseNumber())
+                .append(getStreet(), address.getStreet())
+                .append(getCity(), address.getCity())
+                .append(getState(), address.getState())
+                .append(getZipcode(), address.getZipcode())
+                .append(getCountry(), address.getCountry())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getHouseNumber()).append(getStreet()).append(getCity()).append(getState()).append(getZipcode()).append(getCountry()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(getHouseNumber())
+                .append(getStreet())
+                .append(getCity())
+                .append(getState())
+                .append(getZipcode())
+                .append(getCountry())
+                .toHashCode();
     }
 }

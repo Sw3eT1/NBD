@@ -1,21 +1,72 @@
 package myLibrary.models;
 
+import com.datastax.oss.driver.api.mapper.annotations.CqlName;
+import com.datastax.oss.driver.api.mapper.annotations.Entity;
+import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
+import com.datastax.oss.driver.api.mapper.annotations.ClusteringColumn;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
-import org.bson.codecs.pojo.annotations.BsonProperty;
 
-@BsonDiscriminator("READER")
+@Entity(defaultKeyspace = "library")
+@CqlName("readers_by_library")
 public class Reader extends Person {
 
+    @PartitionKey
+    @CqlName("library_id")
+    @Override
+    public String getLibraryId() {
+        return super.getLibraryId();
+    }
+
+    @ClusteringColumn
+    @CqlName("reader_id")
+    @Override
+    public String getId() {
+        return super.getId();
+    }
+
+    @CqlName("name")
+    @Override
+    public String getName() {
+        return super.getName();
+    }
+
+    @CqlName("surname")
+    @Override
+    public String getSurname() {
+        return super.getSurname();
+    }
+
+    @CqlName("email")
+    @Override
+    public String getEmail() {
+        return super.getEmail();
+    }
+
+    @CqlName("phone")
+    @Override
+    public String getPhone() {
+        return super.getPhone();
+    }
+
+    @CqlName("address")
+    @Override
+    public Address getAddress() {
+        return super.getAddress();
+    }
+
+    @CqlName("card_number")
     private String cardNumber;
 
-    @BsonProperty("readerTypeId")
+    @CqlName("reader_type_id")
     private String readerTypeId;
 
+    @CqlName("active_rentals")
     private int activeRentals = 0;
 
-    public Reader() {}
+    public Reader() {
+        super();
+    }
 
     public Reader(String name, String surname, String email, String phone,
                   Address address, Library library,
@@ -26,21 +77,11 @@ public class Reader extends Person {
         this.readerTypeId = type.getId();
     }
 
-    public String getCardNumber() {
-        return cardNumber;
-    }
+    public String getCardNumber() { return cardNumber; }
+    public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
 
-    public void setCardNumber(String cardNumber) {
-        this.cardNumber = cardNumber;
-    }
-
-    public String getReaderTypeId() {
-        return readerTypeId;
-    }
-
-    public void setReaderTypeId(String readerTypeId) {
-        this.readerTypeId = readerTypeId;
-    }
+    public String getReaderTypeId() { return readerTypeId; }
+    public void setReaderTypeId(String readerTypeId) { this.readerTypeId = readerTypeId; }
 
     public int getActiveRentals() { return activeRentals; }
     public void setActiveRentals(int activeRentals) { this.activeRentals = activeRentals; }
@@ -51,7 +92,7 @@ public class Reader extends Person {
                 "cardNumber='" + cardNumber + '\'' +
                 ", readerTypeId='" + readerTypeId + '\'' +
                 ", activeRentals=" + activeRentals +
-                '}';
+                "} " + super.toString();
     }
 
     @Override
@@ -62,11 +103,21 @@ public class Reader extends Person {
 
         Reader reader = (Reader) o;
 
-        return new EqualsBuilder().appendSuper(super.equals(o)).append(getActiveRentals(), reader.getActiveRentals()).append(getCardNumber(), reader.getCardNumber()).append(getReaderTypeId(), reader.getReaderTypeId()).isEquals();
+        return new EqualsBuilder()
+                .appendSuper(super.equals(o))
+                .append(getActiveRentals(), reader.getActiveRentals())
+                .append(getCardNumber(), reader.getCardNumber())
+                .append(getReaderTypeId(), reader.getReaderTypeId())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).appendSuper(super.hashCode()).append(getCardNumber()).append(getReaderTypeId()).append(getActiveRentals()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .appendSuper(super.hashCode())
+                .append(getCardNumber())
+                .append(getReaderTypeId())
+                .append(getActiveRentals())
+                .toHashCode();
     }
 }

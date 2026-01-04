@@ -1,19 +1,25 @@
 package myLibrary.models;
 
+import com.datastax.oss.driver.api.mapper.annotations.CqlName;
+import com.datastax.oss.driver.api.mapper.annotations.Entity;
+import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
-import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.util.UUID;
 
-@BsonDiscriminator
+@Entity(defaultKeyspace = "library")
+@CqlName("reader_types")
 public abstract class ReaderType {
 
-    @BsonId
+    @PartitionKey
+    @CqlName("reader_type_id")
     private String id;
 
+    @CqlName("name")
     protected String name;
+
+    @CqlName("max_books")
     protected int maxBooks;
 
     public ReaderType() {
@@ -26,29 +32,14 @@ public abstract class ReaderType {
         this.maxBooks = maxBooks;
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getMaxBooks() {
-        return maxBooks;
-    }
-
-    public void setMaxBooks(int maxBooks) {
-        this.maxBooks = maxBooks;
-    }
+    public int getMaxBooks() { return maxBooks; }
+    public void setMaxBooks(int maxBooks) { this.maxBooks = maxBooks; }
 
     @Override
     public String toString() {
@@ -67,11 +58,19 @@ public abstract class ReaderType {
 
         ReaderType that = (ReaderType) o;
 
-        return new EqualsBuilder().append(getMaxBooks(), that.getMaxBooks()).append(getId(), that.getId()).append(getName(), that.getName()).isEquals();
+        return new EqualsBuilder()
+                .append(getMaxBooks(), that.getMaxBooks())
+                .append(getId(), that.getId())
+                .append(getName(), that.getName())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getMaxBooks()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(getId())
+                .append(getName())
+                .append(getMaxBooks())
+                .toHashCode();
     }
 }

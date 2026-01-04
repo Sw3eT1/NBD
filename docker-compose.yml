@@ -1,130 +1,41 @@
-version: "3.9"
+version: '3.8'
 
 services:
-
-  mongo1:
-    build:
-      context: ./docker
-    image: mongocustom
-    container_name: mongo1
-    hostname: mongo1
-    networks: [mongonet]
+  cassandra-node1:
+    image: cassandra:4.1
+    container_name: cassandra-node1
+    environment:
+      - CASSANDRA_CLUSTER_NAME=library-cluster
+      - CASSANDRA_SEEDS=cassandra-node1,cassandra-node2
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_NUM_TOKENS=256
     ports:
-      - "27017:27017"
-
+      - "9042:9042"
     volumes:
-      - mongo1-data:/data/db
-      - mongo1-config:/data/configdb
+      - cassandra-node1-data:/var/lib/cassandra
+    networks:
+      - cassandra-net
+
+  cassandra-node2:
+    image: cassandra:4.1
+    container_name: cassandra-node2
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: adminpassword
-    command: --config /etc/mongod.conf
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  mongo2:
-    image: mongocustom
-    container_name: mongo2
-    hostname: mongo2
-    networks: [mongonet]
-    volumes:
-      - mongo2-data:/data/db
-      - mongo2-config:/data/configdb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: adminpassword
-    command: --config /etc/mongod.conf
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  mongo3:
-    image: mongocustom
-    container_name: mongo3
-    hostname: mongo3
-    networks: [mongonet]
-    volumes:
-      - mongo3-data:/data/db
-      - mongo3-config:/data/configdb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: adminpassword
-    command: --config /etc/mongod.conf
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-
-  redis:
-    image: redis:latest
-    container_name: redis-cache
-    hostname: redis
-    networks: [mongonet]
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-
-  init-replica:
-    image: mongo:8.0.1
-    container_name: init-replica
-    networks: [mongonet]
+      - CASSANDRA_CLUSTER_NAME=library-cluster
+      - CASSANDRA_SEEDS=cassandra-node1,cassandra-node2
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_NUM_TOKENS=256
     depends_on:
-      mongo1:
-        condition: service_healthy
-      mongo2:
-        condition: service_healthy
-      mongo3:
-        condition: service_healthy
-    command: >
-      bash -c "
-        echo 'Initializing replica set...';
-        mongosh --host mongo1:27017 -u admin -p adminpassword --authenticationDatabase admin --eval '
-          rs.initiate({
-            _id: \"rs0\",
-            members: [
-              { _id: 0, host: \"mongo1:27017\" },
-              { _id: 1, host: \"mongo2:27017\" },
-              { _id: 2, host: \"mongo3:27017\" }
-            ]
-          })
-        ';
-        echo 'Replica set initialization DONE.';
-      "
-
-  test-runner:
-    image: maven:3.9.6-eclipse-temurin-21
-    container_name: test-runner
-    networks: [mongonet]
-    depends_on:
-      init-replica:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
+      - cassandra-node1
     volumes:
-      - .:/app
-    working_dir: /app
-    command: [ "mvn", "test" ]
-
-
-volumes:
-  mongo1-data:
-  mongo1-config:
-  mongo2-data:
-  mongo2-config:
-  mongo3-data:
-  mongo3-config:
+      - cassandra-node2-data:/var/lib/cassandra
+    networks:
+      - cassandra-net
 
 networks:
-  mongonet:
+  cassandra-net:
+
+volumes:
+  cassandra-node1-data:
+  cassandra-node2-data:

@@ -18,26 +18,40 @@
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <junit.platform.version>1.10.2</junit.platform.version>
 
-        <!-- MongoDB driver versions -->
-        <mongodb-driver-sync.version>5.2.0</mongodb-driver-sync.version>
-        <mongodb-crypt.version>1.10.0</mongodb-crypt.version>
+        <!-- Cassandra -->
+        <cassandra.driver.version>4.17.0</cassandra.driver.version>
+
         <logback-classic.version>1.5.13</logback-classic.version>
     </properties>
 
     <dependencies>
 
-        <!-- MONGO DB DRIVER -->
+        <!-- Cassandra driver -->
         <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-sync</artifactId>
-            <version>${mongodb-driver-sync.version}</version>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
+            <version>${cassandra.driver.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>bson</artifactId>
-            <version>${mongodb-driver-sync.version}</version>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-query-builder</artifactId>
+            <version>${cassandra.driver.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-mapper-runtime</artifactId>
+            <version>${cassandra.driver.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-mapper-processor</artifactId>
+            <version>${cassandra.driver.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
 
         <!-- LOGGING -->
         <dependency>
@@ -46,37 +60,20 @@
             <version>${logback-classic.version}</version>
         </dependency>
 
-        <!-- Commons-lang (możesz zostawić jeśli używasz) -->
+        <!-- Commons-lang -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.18.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>yasson</artifactId>
-            <version>3.0.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.json.bind</groupId>
-            <artifactId>jakarta.json.bind-api</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-
+        <!-- JMH (benchmark) -->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
             <version>1.37</version>
-
         </dependency>
+
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
@@ -84,6 +81,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- TESTY -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -97,6 +95,7 @@
             <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
