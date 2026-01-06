@@ -3,6 +3,7 @@ package myLibrary.models;
 import com.datastax.oss.driver.api.mapper.annotations.CqlName;
 import com.datastax.oss.driver.api.mapper.annotations.Entity;
 import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
+import com.datastax.oss.driver.api.mapper.annotations.Transient;
 import myLibrary.enums.BookGenre;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -88,11 +89,13 @@ public class Book {
 
     public void setGenre(String genre) { this.genre = genre; }
 
+    @Transient
     // DLA CIEBIE – enum w kodzie
     public BookGenre getGenreEnum() {
         return genre == null ? null : BookGenre.valueOf(genre);
     }
 
+    @Transient
     public void setGenreEnum(BookGenre genreEnum) {
         this.genre = (genreEnum == null) ? null : genreEnum.name();
     }

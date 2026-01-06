@@ -1,9 +1,6 @@
 package myLibrary.models;
 
-import com.datastax.oss.driver.api.mapper.annotations.CqlName;
-import com.datastax.oss.driver.api.mapper.annotations.Entity;
-import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
-import com.datastax.oss.driver.api.mapper.annotations.ClusteringColumn;
+import com.datastax.oss.driver.api.mapper.annotations.*;
 import myLibrary.enums.BookStatus;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -53,10 +50,12 @@ public class BookCopy {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    @Transient
     public BookStatus getStatusEnum() {
         return status == null ? null : BookStatus.valueOf(status);
     }
 
+    @Transient
     public void setStatusEnum(BookStatus status) {
         this.status = status == null ? null : status.toString();
     }

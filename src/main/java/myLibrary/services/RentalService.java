@@ -66,7 +66,7 @@ public class RentalService {
         if (rental == null)
             throw new IllegalArgumentException("Rental not found: " + rentalId);
 
-        if (rental.getStatus() != RentalStatus.ACTIVE.toString()) {
+        if (rental.getStatusEnum() != RentalStatus.ACTIVE) {
             throw new IllegalStateException(
                     "Rental is not active. Cannot return. Status = " + rental.getStatus()
             );

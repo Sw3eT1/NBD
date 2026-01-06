@@ -1,9 +1,6 @@
 package myLibrary.models;
 
-import com.datastax.oss.driver.api.mapper.annotations.CqlName;
-import com.datastax.oss.driver.api.mapper.annotations.Entity;
-import com.datastax.oss.driver.api.mapper.annotations.PartitionKey;
-import com.datastax.oss.driver.api.mapper.annotations.ClusteringColumn;
+import com.datastax.oss.driver.api.mapper.annotations.*;
 import myLibrary.enums.RentalStatus;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -77,10 +74,12 @@ public class Rental {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    @Transient
     public RentalStatus getStatusEnum() {
         return status == null ? null : RentalStatus.valueOf(status);
     }
 
+    @Transient
     public void setStatusEnum (RentalStatus s) {
         this.status = s == null ? null : s.name();
     }
