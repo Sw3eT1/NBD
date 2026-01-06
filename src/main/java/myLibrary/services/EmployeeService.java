@@ -1,31 +1,29 @@
 package myLibrary.services;
 
 import myLibrary.models.Employee;
-import myLibrary.repositories.EmployeeRepository;
+import myLibrary.repositories.EmployeeDao;
 
 public class EmployeeService {
 
-    private final EmployeeRepository repo;
+    private final EmployeeDao employeeDao;
 
-    public EmployeeService(EmployeeRepository repo) {
-        this.repo = repo;
+    public EmployeeService(EmployeeDao repo) {
+        this.employeeDao = repo;
     }
 
     public void addEmployee(Employee employee) {
-        // W Cassandrze brak łatwego sprawdzania unikalności email,
-        // więc pomijamy walidację existsByEmail z Mongo.
-        repo.insert(employee);
+        employeeDao.create(employee);
     }
 
     public void updateEmployee(Employee employee) {
-        repo.update(employee);
+        employeeDao.update(employee);
     }
 
-    public void deleteEmployee(String libraryId, String employeeId) {
-        repo.delete(libraryId, employeeId);
+    public void deleteEmployee(Employee employee) {
+        employeeDao.delete(employee);
     }
 
     public Employee getEmployee(String libraryId, String employeeId) {
-        return repo.findById(libraryId, employeeId);
+        return employeeDao.findById(libraryId, employeeId);
     }
 }

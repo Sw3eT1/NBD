@@ -26,8 +26,9 @@ public class Book {
     @CqlName("publisher")
     private String publisher;
 
+    // MAPOWANE na kolumnę TEXT `genre`
     @CqlName("genre")
-    private BookGenre genre;
+    private String genre;
 
     @CqlName("isbn")
     private String isbn;
@@ -48,42 +49,82 @@ public class Book {
         this.id = UUID.randomUUID().toString();
     }
 
-    public Book(String title, String author, String isbn, BookGenre genre) {
+    public Book(String title, String author, String isbn, BookGenre genreEnum) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.author = author;
         this.isbn = isbn;
-        this.genre = genre;
+        setGenreEnum(genreEnum); // zapisuje do String genre
     }
 
-    public String getId() { return id; }
+    public String getId() {
+        return id;
+    }
+
     public void setId(String id) { this.id = id; }
 
-    public String getTitle() { return title; }
+    public String getTitle() {
+        return title;
+    }
+
     public void setTitle(String title) { this.title = title; }
 
-    public String getAuthor() { return author; }
+    public String getAuthor() {
+        return author;
+    }
+
     public void setAuthor(String author) { this.author = author; }
 
-    public String getPublisher() { return publisher; }
+    public String getPublisher() {
+        return publisher;
+    }
+
     public void setPublisher(String publisher) { this.publisher = publisher; }
 
-    public BookGenre getGenre() { return genre; }
-    public void setGenre(BookGenre genre) { this.genre = genre; }
+    // DLA MAPPERA – String <-> TEXT
+    public String getGenre() {
+        return genre;
+    }
 
-    public String getIsbn() { return isbn; }
+    public void setGenre(String genre) { this.genre = genre; }
+
+    // DLA CIEBIE – enum w kodzie
+    public BookGenre getGenreEnum() {
+        return genre == null ? null : BookGenre.valueOf(genre);
+    }
+
+    public void setGenreEnum(BookGenre genreEnum) {
+        this.genre = (genreEnum == null) ? null : genreEnum.name();
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
     public void setIsbn(String isbn) { this.isbn = isbn; }
 
-    public int getPublicationYear() { return publicationYear; }
+    public int getPublicationYear() {
+        return publicationYear;
+    }
+
     public void setPublicationYear(int publicationYear) { this.publicationYear = publicationYear; }
 
-    public int getPages() { return pages; }
+    public int getPages() {
+        return pages;
+    }
+
     public void setPages(int pages) { this.pages = pages; }
 
-    public String getLanguage() { return language; }
+    public String getLanguage() {
+        return language;
+    }
+
     public void setLanguage(String language) { this.language = language; }
 
-    public String getDescription() { return description; }
+    public String getDescription() {
+        return description;
+    }
+
     public void setDescription(String description) { this.description = description; }
 
     @Override
@@ -93,7 +134,7 @@ public class Book {
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", publisher='" + publisher + '\'' +
-                ", genre=" + genre +
+                ", genre='" + genre + '\'' +
                 ", isbn='" + isbn + '\'' +
                 ", publicationYear=" + publicationYear +
                 ", pages=" + pages +
@@ -105,7 +146,6 @@ public class Book {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-
         if (o == null || getClass() != o.getClass()) return false;
 
         Book book = (Book) o;

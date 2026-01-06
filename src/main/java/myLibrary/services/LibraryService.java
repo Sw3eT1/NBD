@@ -1,29 +1,29 @@
 package myLibrary.services;
 
 import myLibrary.models.Library;
-import myLibrary.repositories.LibraryRepository;
+import myLibrary.repositories.LibraryDao;
 
 public class LibraryService {
 
-    private final LibraryRepository repo;
+    private final LibraryDao libraryDao;
 
-    public LibraryService(LibraryRepository repo) {
-        this.repo = repo;
+    public LibraryService(LibraryDao repo) {
+        this.libraryDao = repo;
     }
 
     public void addLibrary(Library library) {
-        repo.insert(library);
+        libraryDao.create(library);
     }
 
     public void update(Library library) {
-        repo.update(library);
+        libraryDao.update(library);
     }
 
     public Library find(String id) {
-        return repo.findById(id);
+        return libraryDao.findById(id);
     }
 
-    public void delete(String id) {
-        repo.delete(id);
+    public void delete(Library library) {
+        libraryDao.delete(library);
     }
 }

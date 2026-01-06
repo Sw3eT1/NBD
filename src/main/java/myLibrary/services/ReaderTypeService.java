@@ -1,29 +1,29 @@
 package myLibrary.services;
 
 import myLibrary.models.ReaderType;
-import myLibrary.repositories.ReaderTypeRepository;
+import myLibrary.repositories.ReaderTypeDao;
 
 public class ReaderTypeService {
 
-    private final ReaderTypeRepository repo;
+    private final ReaderTypeDao readerTypeDao;
 
-    public ReaderTypeService(ReaderTypeRepository repo) {
-        this.repo = repo;
+    public ReaderTypeService(ReaderTypeDao repo) {
+        this.readerTypeDao = repo;
     }
 
     public void addReaderType(ReaderType type) {
-        repo.insert(type);
+        readerTypeDao.create(type);
     }
 
     public void updateReaderType(ReaderType type) {
-        repo.update(type);
+        readerTypeDao.update(type);
     }
 
-    public void deleteReaderType(String id) {
-        repo.delete(id);
+    public void deleteReaderType(ReaderType type) {
+        readerTypeDao.delete(type);
     }
 
     public ReaderType getReaderType(String id) {
-        return repo.findById(id);
+        return readerTypeDao.findById(id);
     }
 }

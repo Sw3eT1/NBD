@@ -5,24 +5,24 @@ import myLibrary.enums.RentalStatus;
 import myLibrary.models.BookCopy;
 import myLibrary.models.Reader;
 import myLibrary.models.Rental;
-import myLibrary.repositories.BookCopyRepository;
-import myLibrary.repositories.ReaderRepository;
-import myLibrary.repositories.RentalRepository;
+import myLibrary.repositories.BookCopyDao;
+import myLibrary.repositories.ReaderDao;
+import myLibrary.repositories.RentalDao;
 
 import java.time.LocalDate;
 
 public class RentalService {
 
-    private final RentalRepository rentalRepo;
-    private final BookCopyRepository copyRepo;
-    private final ReaderRepository readerRepo;
+    private final RentalDao rentalDao;
+    private final BookCopyDao bookCopyDao;
+    private final ReaderDao readerDao;
 
-    public RentalService(RentalRepository rentalRepo,
-                         BookCopyRepository copyRepo,
-                         ReaderRepository readerRepo) {
-        this.rentalRepo = rentalRepo;
-        this.copyRepo = copyRepo;
-        this.readerRepo = readerRepo;
+    public RentalService(RentalDao rentalDao,
+                         BookCopyDao bookCopyDao,
+                         ReaderDao readerDao) {
+        this.rentalDao = rentalDao;
+        this.bookCopyDao = bookCopyDao;
+        this.readerDao = readerDao;
     }
 
     /**
@@ -39,15 +39,15 @@ public class RentalService {
 
         // 1) Utwórz wypożyczenie
         Rental rental = new Rental(reader, copy, LocalDate.now(), dueDate);
-        rentalRepo.insert(rental);
+        rentalDao.create(rental);
 
         // 2) Zmień status egzemplarza
-        copy.setStatus(BookStatus.RENTED);
-        copyRepo.update(copy);
+        copy.setStatusEnum(BookStatus.RENTED);
+        bookCopyDao.update(copy);
 
         // 3) Zwiększ licznik aktywnych wypożyczeń czytelnika
         reader.setActiveRentals(reader.getActiveRentals() + 1);
-        readerRepo.update(reader);
+        readerDao.update(reader);
 
         return rental;
     }
@@ -62,42 +62,42 @@ public class RentalService {
                            String copyId) {
 
         // 1) Pobierz wypożyczenie
-        Rental rental = rentalRepo.findById(readerId, rentalId);
+        Rental rental = rentalDao.findById(readerId, rentalId);
         if (rental == null)
             throw new IllegalArgumentException("Rental not found: " + rentalId);
 
-        if (rental.getStatus() != RentalStatus.ACTIVE) {
+        if (rental.getStatus() != RentalStatus.ACTIVE.toString()) {
             throw new IllegalStateException(
                     "Rental is not active. Cannot return. Status = " + rental.getStatus()
             );
         }
 
         // 2) Pobierz kopię
-        BookCopy copy = copyRepo.findById(libraryId, bookId, copyId);
+        BookCopy copy = bookCopyDao.findById(libraryId, bookId, copyId);
         if (copy == null)
             throw new IllegalStateException("BookCopy not found: " + copyId);
 
         // 3) Oznacz wypożyczenie jako zwrócone
-        rental.setStatus(RentalStatus.RETURNED);
+        rental.setStatusEnum(RentalStatus.RETURNED);
         rental.setReturnDate(LocalDate.now());
-        rentalRepo.update(rental);
+        rentalDao.update(rental);
 
         // 4) Oznacz kopię jako dostępną
-        copy.setStatus(BookStatus.AVAILABLE);
-        copyRepo.update(copy);
+        copy.setStatusEnum(BookStatus.AVAILABLE);
+        bookCopyDao.update(copy);
 
         // 5) Zmniejsz licznik aktywnych wypożyczeń
-        Reader reader = readerRepo.findById(libraryId, readerId);
+        Reader reader = readerDao.findById(libraryId, readerId);
         reader.setActiveRentals(Math.max(0, reader.getActiveRentals() - 1));
-        readerRepo.update(reader);
+        readerDao.update(reader);
     }
 
     // Proste przekierowania do CRUD w repo (opcjonalnie, jeśli chcesz)
     public Rental findById(String readerId, String rentalId) {
-        return rentalRepo.findById(readerId, rentalId);
+        return rentalDao.findById(readerId, rentalId);
     }
 
-    public void delete(String readerId, String rentalId) {
-        rentalRepo.delete(readerId, rentalId);
+    public void delete(Rental rental) {
+        rentalDao.delete(rental);
     }
 }

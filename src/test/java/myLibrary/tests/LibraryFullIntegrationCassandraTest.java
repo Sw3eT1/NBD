@@ -96,9 +96,9 @@ public class LibraryFullIntegrationCassandraTest extends CassandraTestBase {
         BookCopy copy2 = bookCopyService.createCopy(book1.getId(), library.getId());
         BookCopy copy3 = bookCopyService.createCopy(book2.getId(), library.getId());
 
-        BookCopy copy1FromDb = copyRepo.findById(library.getId(), book1.getId(), copy1.getId());
-        BookCopy copy2FromDb = copyRepo.findById(library.getId(), book1.getId(), copy2.getId());
-        BookCopy copy3FromDb = copyRepo.findById(library.getId(), book2.getId(), copy3.getId());
+        BookCopy copy1FromDb = bookCopyDao.findById(library.getId(), book1.getId(), copy1.getId());
+        BookCopy copy2FromDb = bookCopyDao.findById(library.getId(), book1.getId(), copy2.getId());
+        BookCopy copy3FromDb = bookCopyDao.findById(library.getId(), book2.getId(), copy3.getId());
 
         Assertions.assertNotNull(copy1FromDb);
         Assertions.assertNotNull(copy2FromDb);
@@ -112,9 +112,9 @@ public class LibraryFullIntegrationCassandraTest extends CassandraTestBase {
         Rental r2RentalFromDb = rentalService.findById(reader2.getId(), rental2.getId());
 
         Assertions.assertNotNull(r1RentalFromDb);
-        Assertions.assertEquals(RentalStatus.ACTIVE, r1RentalFromDb.getStatus());
+        Assertions.assertEquals(RentalStatus.ACTIVE, r1RentalFromDb.getStatusEnum());
         Assertions.assertNotNull(r2RentalFromDb);
-        Assertions.assertEquals(RentalStatus.ACTIVE, r2RentalFromDb.getStatus());
+        Assertions.assertEquals(RentalStatus.ACTIVE, r2RentalFromDb.getStatusEnum());
 
         // UWAGA:
         // W wersji Mongo tu sprawdzałeś limit wypożyczeń + race-condition.
@@ -131,12 +131,12 @@ public class LibraryFullIntegrationCassandraTest extends CassandraTestBase {
         );
 
         Rental returned = rentalService.findById(reader1.getId(), rental1.getId());
-        Assertions.assertEquals(RentalStatus.RETURNED, returned.getStatus());
+        Assertions.assertEquals(RentalStatus.RETURNED, returned.getStatusEnum());
         Assertions.assertNotNull(returned.getReturnDate());
 
         // Sprawdzamy, że kopia znowu jest dostępna
-        BookCopy copy1AfterReturn = copyRepo.findById(library.getId(), book1.getId(), copy1.getId());
-        Assertions.assertEquals(BookStatus.AVAILABLE, copy1AfterReturn.getStatus());
+        BookCopy copy1AfterReturn = bookCopyDao.findById(library.getId(), book1.getId(), copy1.getId());
+        Assertions.assertEquals(BookStatus.AVAILABLE, copy1AfterReturn.getStatusEnum());
 
         // --- 10. Aktualizacja pracownika ---
         emp1.setSalary(5000);
@@ -152,7 +152,7 @@ public class LibraryFullIntegrationCassandraTest extends CassandraTestBase {
         Assertions.assertEquals("Opis testowy", updatedBook1.getDescription());
 
         // --- 12. Usunięcie czytelnika 2 ---
-        readerService.deleteReader(library.getId(), reader2.getId());
+        readerService.deleteReader(reader2);
         Reader deletedReader2 = readerService.getReader(library.getId(), reader2.getId());
         Assertions.assertNull(deletedReader2);
     }

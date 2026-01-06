@@ -19,23 +19,23 @@ public class RepositoriesCrudTest extends CassandraTestBase {
         book.setDescription("desc");
 
         // CREATE
-        bookRepo.insert(book);
+        bookDao.create(book);
 
         // READ
-        Book fromDb = bookRepo.findById(book.getId());
+        Book fromDb = bookDao.findById(book.getId());
         Assertions.assertNotNull(fromDb);
         Assertions.assertEquals(book.getTitle(), fromDb.getTitle());
 
         // UPDATE
         book.setDescription("updated");
-        bookRepo.update(book);
+        bookDao.update(book);
 
-        Book updated = bookRepo.findById(book.getId());
+        Book updated = bookDao.findById(book.getId());
         Assertions.assertEquals("updated", updated.getDescription());
 
         // DELETE
-        bookRepo.delete(book.getId());
-        Book deleted = bookRepo.findById(book.getId());
+        bookDao.delete(book);
+        Book deleted = bookDao.findById(book.getId());
         Assertions.assertNull(deleted);
     }
 
@@ -45,18 +45,18 @@ public class RepositoriesCrudTest extends CassandraTestBase {
         Address addr = new Address("1", "Main", "City", "State", "00-000", "Country");
         Library library = new Library("Lib", addr, "111", "lib@mail.com", "site", true, "8-16");
 
-        libraryRepo.insert(library);
-        Library fromDb = libraryRepo.findById(library.getId());
+        libraryDao.create(library);
+        Library fromDb = libraryDao.findById(library.getId());
         Assertions.assertNotNull(fromDb);
         Assertions.assertEquals("Lib", fromDb.getName());
 
         library.setOpeningHours("9-17");
-        libraryRepo.update(library);
-        Library updated = libraryRepo.findById(library.getId());
+        libraryDao.update(library);
+        Library updated = libraryDao.findById(library.getId());
         Assertions.assertEquals("9-17", updated.getOpeningHours());
 
-        libraryRepo.delete(library.getId());
-        Assertions.assertNull(libraryRepo.findById(library.getId()));
+        libraryDao.delete(library);
+        Assertions.assertNull(libraryDao.findById(library.getId()));
     }
 
     @Test
@@ -64,19 +64,19 @@ public class RepositoriesCrudTest extends CassandraTestBase {
     void readerTypeRepositoryCrud() {
         ReaderTypeAdult adult = new ReaderTypeAdult();
 
-        readerTypeRepo.insert(adult);
-        ReaderType fromDb = readerTypeRepo.findById(adult.getId());
+        readerTypeDao.create(adult);
+        ReaderType fromDb = readerTypeDao.findById(adult.getId());
         Assertions.assertNotNull(fromDb);
         Assertions.assertEquals("ADULT", fromDb.getName());
 
         fromDb.setMaxBooks(20);
-        readerTypeRepo.update(fromDb);
+        readerTypeDao.update(fromDb);
 
-        ReaderType updated = readerTypeRepo.findById(adult.getId());
+        ReaderType updated = readerTypeDao.findById(adult.getId());
         Assertions.assertEquals(20, updated.getMaxBooks());
 
-        readerTypeRepo.delete(adult.getId());
-        Assertions.assertNull(readerTypeRepo.findById(adult.getId()));
+        readerTypeDao.delete(adult);
+        Assertions.assertNull(readerTypeDao.findById(adult.getId()));
     }
 
     @Test
@@ -84,28 +84,28 @@ public class RepositoriesCrudTest extends CassandraTestBase {
     void readerRepositoryCrud() {
         Address addr = new Address("2", "Street", "City", "State", "00-001", "Country");
         Library library = new Library("Lib2", addr, "222", "l2@mail.com", "site2", false, "10-18");
-        libraryRepo.insert(library);
+        libraryDao.create(library);
 
         ReaderTypeTeenager teenager = new ReaderTypeTeenager();
-        readerTypeRepo.insert(teenager);
+        readerTypeDao.create(teenager);
 
         Reader reader = new Reader("Jan", "Kowalski", "jan@mail.com", "123",
                 addr, library, "CARD-1", teenager);
 
-        readerRepo.insert(reader);
+        readerDao.create(reader);
 
-        Reader fromDb = readerRepo.findById(library.getId(), reader.getId());
+        Reader fromDb = readerDao.findById(library.getId(), reader.getId());
         Assertions.assertNotNull(fromDb);
         Assertions.assertEquals("Jan", fromDb.getName());
 
         reader.setActiveRentals(3);
-        readerRepo.update(reader);
+        readerDao.update(reader);
 
-        Reader updated = readerRepo.findById(library.getId(), reader.getId());
+        Reader updated = readerDao.findById(library.getId(), reader.getId());
         Assertions.assertEquals(3, updated.getActiveRentals());
 
-        readerRepo.delete(library.getId(), reader.getId());
-        Assertions.assertNull(readerRepo.findById(library.getId(), reader.getId()));
+        readerDao.delete(reader);
+        Assertions.assertNull(readerDao.findById(library.getId(), reader.getId()));
     }
 
     @Test
@@ -113,24 +113,24 @@ public class RepositoriesCrudTest extends CassandraTestBase {
     void employeeRepositoryCrud() {
         Address addr = new Address("3", "Street", "City", "State", "00-002", "Country");
         Library library = new Library("Lib3", addr, "333", "l3@mail.com", "site3", true, "9-19");
-        libraryRepo.insert(library);
+        libraryDao.create(library);
 
         Employee emp = new Employee("Ewa", "Nowak", "ewa@mail.com", "555",
                 addr, library, "Librarian", 3000, LocalDate.of(2020, 1, 1));
 
-        employeeRepo.insert(emp);
+        employeeDao.create(emp);
 
-        Employee fromDb = employeeRepo.findById(library.getId(), emp.getId());
+        Employee fromDb = employeeDao.findById(library.getId(), emp.getId());
         Assertions.assertNotNull(fromDb);
         Assertions.assertEquals("Ewa", fromDb.getName());
 
         emp.setSalary(3500);
-        employeeRepo.update(emp);
-        Employee updated = employeeRepo.findById(library.getId(), emp.getId());
+        employeeDao.update(emp);
+        Employee updated = employeeDao.findById(library.getId(), emp.getId());
         Assertions.assertEquals(3500, updated.getSalary());
 
-        employeeRepo.delete(library.getId(), emp.getId());
-        Assertions.assertNull(employeeRepo.findById(library.getId(), emp.getId()));
+        employeeDao.delete(emp);
+        Assertions.assertNull(employeeDao.findById(library.getId(), emp.getId()));
     }
 
     @Test
@@ -138,26 +138,26 @@ public class RepositoriesCrudTest extends CassandraTestBase {
     void bookCopyRepositoryCrud() {
         Address addr = new Address("4", "Street", "City", "State", "00-003", "Country");
         Library library = new Library("Lib4", addr, "444", "l4@mail.com", "site4", true, "8-18");
-        libraryRepo.insert(library);
+        libraryDao.create(library);
 
         Book book = new Book("CopyBook", "Author", "COPY-1", BookGenre.SCIENCE_FICTION);
-        bookRepo.insert(book);
+        bookDao.create(book);
 
         BookCopy copy = new BookCopy(book, library);
-        copy.setStatus(BookStatus.AVAILABLE);
-        copyRepo.insert(copy);
+        copy.setStatusEnum(BookStatus.AVAILABLE);
+        bookCopyDao.create(copy);
 
-        BookCopy fromDb = copyRepo.findById(library.getId(), book.getId(), copy.getId());
+        BookCopy fromDb = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
         Assertions.assertNotNull(fromDb);
-        Assertions.assertEquals(BookStatus.AVAILABLE, fromDb.getStatus());
+        Assertions.assertEquals(BookStatus.AVAILABLE, fromDb.getStatusEnum());
 
-        copy.setStatus(BookStatus.RENTED);
-        copyRepo.update(copy);
-        BookCopy updated = copyRepo.findById(library.getId(), book.getId(), copy.getId());
-        Assertions.assertEquals(BookStatus.RENTED, updated.getStatus());
+        copy.setStatusEnum(BookStatus.RENTED);
+        bookCopyDao.update(copy);
+        BookCopy updated = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
+        Assertions.assertEquals(BookStatus.RENTED, updated.getStatusEnum());
 
-        copyRepo.delete(library.getId(), book.getId(), copy.getId());
-        Assertions.assertNull(copyRepo.findById(library.getId(), book.getId(), copy.getId()));
+        bookCopyDao.delete(copy);
+        Assertions.assertNull(bookCopyDao.findById(library.getId(), book.getId(), copy.getId()));
     }
 
     @Test
@@ -165,38 +165,38 @@ public class RepositoriesCrudTest extends CassandraTestBase {
     void rentalRepositoryCrud() {
         Address addr = new Address("5", "Street", "City", "State", "00-004", "Country");
         Library library = new Library("Lib5", addr, "555", "l5@mail.com", "site5", true, "7-17");
-        libraryRepo.insert(library);
+        libraryDao.create(library);
 
         ReaderTypeKid kid = new ReaderTypeKid();
-        readerTypeRepo.insert(kid);
+        readerTypeDao.create(kid);
 
         Reader reader = new Reader("Ola", "Test", "ola@mail.com", "777",
                 addr, library, "CARD-2", kid);
-        readerRepo.insert(reader);
+        readerDao.create(reader);
 
         Book book = new Book("RentalBook", "Author", "REN-1", BookGenre.SCIENCE_FICTION);
-        bookRepo.insert(book);
+        bookDao.create(book);
 
         BookCopy copy = new BookCopy(book, library);
-        copy.setStatus(BookStatus.AVAILABLE);
-        copyRepo.insert(copy);
+        copy.setStatusEnum(BookStatus.AVAILABLE);
+        bookCopyDao.create(copy);
 
         Rental rental = new Rental(reader, copy, LocalDate.now(), LocalDate.now().plusDays(7));
-        rental.setStatus(RentalStatus.ACTIVE);
-        rentalRepo.insert(rental);
+        rental.setStatusEnum(RentalStatus.ACTIVE);
+        rentalDao.create(rental);
 
-        Rental fromDb = rentalRepo.findById(reader.getId(), rental.getId());
+        Rental fromDb = rentalDao.findById(reader.getId(), rental.getId());
         Assertions.assertNotNull(fromDb);
-        Assertions.assertEquals(RentalStatus.ACTIVE, fromDb.getStatus());
+        Assertions.assertEquals(RentalStatus.ACTIVE, fromDb.getStatusEnum());
 
-        rental.setStatus(RentalStatus.RETURNED);
+        rental.setStatusEnum(RentalStatus.RETURNED);
         rental.setReturnDate(LocalDate.now());
-        rentalRepo.update(rental);
+        rentalDao.update(rental);
 
-        Rental updated = rentalRepo.findById(reader.getId(), rental.getId());
-        Assertions.assertEquals(RentalStatus.RETURNED, updated.getStatus());
+        Rental updated = rentalDao.findById(reader.getId(), rental.getId());
+        Assertions.assertEquals(RentalStatus.RETURNED, updated.getStatusEnum());
 
-        rentalRepo.delete(reader.getId(), rental.getId());
-        Assertions.assertNull(rentalRepo.findById(reader.getId(), rental.getId()));
+        rentalDao.delete(rental);
+        Assertions.assertNull(rentalDao.findById(reader.getId(), rental.getId()));
     }
 }

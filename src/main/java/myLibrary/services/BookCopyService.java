@@ -4,30 +4,30 @@ import myLibrary.enums.BookStatus;
 import myLibrary.models.Book;
 import myLibrary.models.BookCopy;
 import myLibrary.models.Library;
-import myLibrary.repositories.BookCopyRepository;
-import myLibrary.repositories.BookRepository;
-import myLibrary.repositories.LibraryRepository;
+import myLibrary.repositories.BookCopyDao;
+import myLibrary.repositories.BookDao;
+import myLibrary.repositories.LibraryDao;
 
 public class BookCopyService {
 
-    private final BookRepository bookRepo;
-    private final LibraryRepository libraryRepo;
-    private final BookCopyRepository copyRepo;
+    private final BookDao bookDao;
+    private final LibraryDao libraryDao;
+    private final BookCopyDao bookCopyDao;
 
-    public BookCopyService(BookRepository bookRepo,
-                           LibraryRepository libraryRepo,
-                           BookCopyRepository copyRepo) {
-        this.bookRepo = bookRepo;
-        this.libraryRepo = libraryRepo;
-        this.copyRepo = copyRepo;
+    public BookCopyService(BookDao bookRepo,
+                           LibraryDao libraryRepo,
+                           BookCopyDao copyRepo) {
+        this.bookDao = bookRepo;
+        this.libraryDao = libraryRepo;
+        this.bookCopyDao = copyRepo;
     }
 
     /**
      * Tworzy nową kopię książki w danej bibliotece.
      */
     public BookCopy createCopy(String bookId, String libraryId) {
-        Book book = bookRepo.findById(bookId);
-        Library library = libraryRepo.findById(libraryId);
+        Book book = bookDao.findById(bookId);
+        Library library = libraryDao.findById(libraryId);
 
         if (book == null) {
             throw new IllegalArgumentException("Book not found: " + bookId);
@@ -37,7 +37,7 @@ public class BookCopyService {
         }
 
         BookCopy copy = new BookCopy(book, library);
-        copyRepo.insert(copy);
+        bookCopyDao.create(copy);
 
         return copy;
     }
@@ -51,12 +51,12 @@ public class BookCopyService {
                              String copyId,
                              BookStatus status) {
 
-        BookCopy copy = copyRepo.findById(libraryId, bookId, copyId);
+        BookCopy copy = bookCopyDao.findById(libraryId, bookId, copyId);
         if (copy == null) {
             throw new IllegalArgumentException("Copy not found: " + copyId);
         }
 
-        copy.setStatus(status);
-        copyRepo.update(copy);
+        copy.setStatusEnum(status);
+        bookCopyDao.update(copy);
     }
 }

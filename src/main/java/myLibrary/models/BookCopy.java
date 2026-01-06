@@ -28,7 +28,7 @@ public class BookCopy {
     private String bookId;
 
     @CqlName("status")
-    private BookStatus status;
+    private String status;
 
     public BookCopy() {
         this.id = UUID.randomUUID().toString();
@@ -38,7 +38,7 @@ public class BookCopy {
         this.id = UUID.randomUUID().toString();
         this.bookId = book.getId();
         this.libraryId = library.getId();
-        this.status = BookStatus.AVAILABLE;
+        this.status = BookStatus.AVAILABLE.toString();
     }
 
     public String getId() { return id; }
@@ -50,8 +50,16 @@ public class BookCopy {
     public String getLibraryId() { return libraryId; }
     public void setLibraryId(String libraryId) { this.libraryId = libraryId; }
 
-    public BookStatus getStatus() { return status; }
-    public void setStatus(BookStatus status) { this.status = status; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public BookStatus getStatusEnum() {
+        return status == null ? null : BookStatus.valueOf(status);
+    }
+
+    public void setStatusEnum(BookStatus status) {
+        this.status = status == null ? null : status.toString();
+    }
 
     @Override
     public String toString() {

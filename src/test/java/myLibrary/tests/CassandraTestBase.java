@@ -1,5 +1,6 @@
 package myLibrary.tests;
 
+import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.CqlSession;
 import myLibrary.config.CassandraConnector;
 import myLibrary.repositories.*;
@@ -11,14 +12,14 @@ public abstract class CassandraTestBase {
 
     protected CqlSession session;
 
-    // Repos
-    protected LibraryRepository libraryRepo;
-    protected BookRepository bookRepo;
-    protected BookCopyRepository copyRepo;
-    protected EmployeeRepository employeeRepo;
-    protected ReaderRepository readerRepo;
-    protected ReaderTypeRepository readerTypeRepo;
-    protected RentalRepository rentalRepo;
+    // DAO
+    protected LibraryDao libraryDao;
+    protected BookDao bookDao;
+    protected BookCopyDao bookCopyDao;
+    protected EmployeeDao employeeDao;
+    protected ReaderDao readerDao;
+    protected ReaderTypeDao readerTypeDao;
+    protected RentalDao rentalDao;
 
     // Services
     protected LibraryService libraryService;
@@ -31,9 +32,10 @@ public abstract class CassandraTestBase {
 
     @BeforeAll
     void setupCassandra() {
+        // 1. Sesja
         session = CassandraConnector.getSession();
 
-        // Czyścimy tabele – zakładam, że wszystkie istnieją
+        // 2. Wyczyść tabele (żeby testy startowały na pustej bazie)
         session.execute("TRUNCATE library.libraries_by_id");
         session.execute("TRUNCATE library.books_by_id");
         session.execute("TRUNCATE library.book_copies_by_library");
@@ -42,23 +44,26 @@ public abstract class CassandraTestBase {
         session.execute("TRUNCATE library.reader_types");
         session.execute("TRUNCATE library.rentals_by_reader");
 
-        // Repos
-        libraryRepo = new LibraryRepository(session);
-        bookRepo = new BookRepository(session);
-        copyRepo = new BookCopyRepository(session);
-        employeeRepo = new EmployeeRepository(session);
-        readerRepo = new ReaderRepository(session);
-        readerTypeRepo = new ReaderTypeRepository(session);
-        rentalRepo = new RentalRepository(session);
+        // 3. Zbuduj Mapper i DAO
+        LibraryMapper mapper = new LibraryMapperBuilder(session).build();
+        CqlIdentifier ks = CqlIdentifier.fromCql("library");
 
-        // Services
-        libraryService = new LibraryService(libraryRepo);
-        bookService = new BookService(bookRepo);
-        bookCopyService = new BookCopyService(bookRepo, libraryRepo, copyRepo);
-        employeeService = new EmployeeService(employeeRepo);
-        readerTypeService = new ReaderTypeService(readerTypeRepo);
-        readerService = new ReaderService(readerRepo, readerTypeRepo);
-        rentalService = new RentalService(rentalRepo, copyRepo, readerRepo);
+        libraryDao     = mapper.libraryDao(ks);
+        bookDao        = mapper.bookDao(ks);
+        bookCopyDao    = mapper.bookCopyDao(ks);
+        employeeDao    = mapper.employeeDao(ks);
+        readerDao      = mapper.readerDao(ks);
+        readerTypeDao  = mapper.readerTypeDao(ks);
+        rentalDao      = mapper.rentalDao(ks);
+
+        // 4. Zbuduj serwisy na DAO
+        libraryService     = new LibraryService(libraryDao);
+        bookService        = new BookService(bookDao);
+        bookCopyService    = new BookCopyService(bookDao, libraryDao, bookCopyDao);
+        employeeService    = new EmployeeService(employeeDao);
+        readerTypeService  = new ReaderTypeService(readerTypeDao);
+        readerService      = new ReaderService(readerDao, readerTypeDao);
+        rentalService      = new RentalService(rentalDao, bookCopyDao, readerDao);
     }
 
     @AfterAll

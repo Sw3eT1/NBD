@@ -1,29 +1,29 @@
 package myLibrary.services;
 
 import myLibrary.models.Book;
-import myLibrary.repositories.BookRepository;
+import myLibrary.repositories.BookDao;
 
 public class BookService {
 
-    private final BookRepository bookRepo;
+    private final BookDao bookDao;
 
-    public BookService(BookRepository bookRepo) {
-        this.bookRepo = bookRepo;
+    public BookService(BookDao bookRepo) {
+        this.bookDao = bookRepo;
     }
 
     public void addBook(Book book) {
-        bookRepo.insert(book);
+        bookDao.create(book);
     }
 
     public Book find(String id) {
-        return bookRepo.findById(id);
+        return bookDao.findById(id);
     }
 
     public void updateBook(Book book) {
-        bookRepo.update(book);
+        bookDao.update(book);
     }
 
-    public void deleteBook(String id) {
-        bookRepo.delete(id);
+    public void deleteBook(Book book) {
+        bookDao.delete(book);
     }
 }

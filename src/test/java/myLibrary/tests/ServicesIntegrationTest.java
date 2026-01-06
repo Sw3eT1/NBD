@@ -38,7 +38,7 @@ public class ServicesIntegrationTest extends CassandraTestBase {
         Library toDelete = new Library("ToDelete", addr, "111", "del@lib.pl", "del.pl",
                 false, "08-16");
         libraryService.addLibrary(toDelete);
-        libraryService.delete(toDelete.getId());
+        libraryService.delete(toDelete);
         Assertions.assertNull(libraryService.find(toDelete.getId()));
     }
 
@@ -94,7 +94,7 @@ public class ServicesIntegrationTest extends CassandraTestBase {
         // DELETE readerType na osobnym typie, żeby adult został do dalszych testów
         ReaderTypeKid kid = new ReaderTypeKid();
         readerTypeService.addReaderType(kid);
-        readerTypeService.deleteReaderType(kid.getId());
+        readerTypeService.deleteReaderType(kid);
         Assertions.assertNull(readerTypeService.getReaderType(kid.getId()));
     }
 
@@ -125,18 +125,18 @@ public class ServicesIntegrationTest extends CassandraTestBase {
         Assertions.assertNotNull(copy);
 
         // Domyślny status po utworzeniu
-        BookCopy copyFromDb = copyRepo.findById(library.getId(), book.getId(), copy.getId());
+        BookCopy copyFromDb = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
         Assertions.assertNotNull(copyFromDb);
-        Assertions.assertEquals(BookStatus.AVAILABLE, copyFromDb.getStatus());
+        Assertions.assertEquals(BookStatus.AVAILABLE, copyFromDb.getStatusEnum());
 
         // Zmiana statusu na RENTED przez serwis
         bookCopyService.changeStatus(library.getId(), book.getId(), copy.getId(), BookStatus.RENTED);
 
-        BookCopy copyAfterChange = copyRepo.findById(library.getId(), book.getId(), copy.getId());
-        Assertions.assertEquals(BookStatus.RENTED, copyAfterChange.getStatus());
+        BookCopy copyAfterChange = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
+        Assertions.assertEquals(BookStatus.RENTED, copyAfterChange.getStatusEnum());
 
         // DELETE książki (kopii nie ruszamy, bo może być jeszcze użyta w innych scenariuszach)
-        bookService.deleteBook(book.getId());
+        bookService.deleteBook(book);
         Assertions.assertNull(bookService.find(book.getId()));
     }
 
@@ -176,7 +176,7 @@ public class ServicesIntegrationTest extends CassandraTestBase {
         Assertions.assertEquals(4000, updated.getSalary(), 0.001);
 
         // DELETE
-        employeeService.deleteEmployee(library.getId(), emp.getId());
+        employeeService.deleteEmployee(emp);
         Assertions.assertNull(employeeService.getEmployee(library.getId(), emp.getId()));
     }
 
@@ -211,23 +211,23 @@ public class ServicesIntegrationTest extends CassandraTestBase {
         bookService.addBook(book);
 
         BookCopy copy = bookCopyService.createCopy(book.getId(), library.getId());
-        BookCopy copyFromDb = copyRepo.findById(library.getId(), book.getId(), copy.getId());
-        Assertions.assertEquals(BookStatus.AVAILABLE, copyFromDb.getStatus());
+        BookCopy copyFromDb = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
+        Assertions.assertEquals(BookStatus.AVAILABLE, copyFromDb.getStatusEnum());
 
         // 5. Wypożyczenie przez RentalService
         Rental rental = rentalService.rent(reader, copy, LocalDate.now().plusDays(14));
 
         Rental rentalFromDb = rentalService.findById(reader.getId(), rental.getId());
         Assertions.assertNotNull(rentalFromDb);
-        Assertions.assertEquals(RentalStatus.ACTIVE, rentalFromDb.getStatus());
+        Assertions.assertEquals(RentalStatus.ACTIVE, rentalFromDb.getStatusEnum());
 
         // Sprawdzamy, że licznik aktywnych wypożyczeń czytelnika wzrósł
         Reader readerAfterRent = readerService.getReader(library.getId(), reader.getId());
         Assertions.assertEquals(1, readerAfterRent.getActiveRentals());
 
         // Sprawdzamy, że kopia ma status RENTED
-        BookCopy copyAfterRent = copyRepo.findById(library.getId(), book.getId(), copy.getId());
-        Assertions.assertEquals(BookStatus.RENTED, copyAfterRent.getStatus());
+        BookCopy copyAfterRent = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
+        Assertions.assertEquals(BookStatus.RENTED, copyAfterRent.getStatusEnum());
 
         // 6. Zwrot książki
         rentalService.returnBook(
@@ -239,12 +239,12 @@ public class ServicesIntegrationTest extends CassandraTestBase {
         );
 
         Rental rentalAfterReturn = rentalService.findById(reader.getId(), rental.getId());
-        Assertions.assertEquals(RentalStatus.RETURNED, rentalAfterReturn.getStatus());
+        Assertions.assertEquals(RentalStatus.RETURNED, rentalAfterReturn.getStatusEnum());
         Assertions.assertNotNull(rentalAfterReturn.getReturnDate());
 
         // Kopia jest znowu AVAILABLE
-        BookCopy copyAfterReturn = copyRepo.findById(library.getId(), book.getId(), copy.getId());
-        Assertions.assertEquals(BookStatus.AVAILABLE, copyAfterReturn.getStatus());
+        BookCopy copyAfterReturn = bookCopyDao.findById(library.getId(), book.getId(), copy.getId());
+        Assertions.assertEquals(BookStatus.AVAILABLE, copyAfterReturn.getStatusEnum());
 
         // Licznik aktywnych wypożyczeń powinien wrócić do 0 (nasza logika biznesowa)
         Reader readerAfterReturn = readerService.getReader(library.getId(), reader.getId());

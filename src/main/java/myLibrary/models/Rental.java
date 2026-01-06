@@ -36,7 +36,7 @@ public class Rental {
     private LocalDate returnDate;
 
     @CqlName("status")
-    private RentalStatus status;
+    private String status;
 
     @CqlName("fine")
     private double fine;
@@ -53,7 +53,7 @@ public class Rental {
         this.bookCopyId = copy.getId();
         this.rentalDate = rentalDate;
         this.dueDate = dueDate;
-        this.status = RentalStatus.ACTIVE;
+        this.status = RentalStatus.ACTIVE.toString();
     }
 
     public String getId() { return id; }
@@ -74,8 +74,16 @@ public class Rental {
     public LocalDate getReturnDate() { return returnDate; }
     public void setReturnDate(LocalDate returnDate) { this.returnDate = returnDate; }
 
-    public RentalStatus getStatus() { return status; }
-    public void setStatus(RentalStatus status) { this.status = status; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public RentalStatus getStatusEnum() {
+        return status == null ? null : RentalStatus.valueOf(status);
+    }
+
+    public void setStatusEnum (RentalStatus s) {
+        this.status = s == null ? null : s.name();
+    }
 
     public double getFine() { return fine; }
     public void setFine(double fine) { this.fine = fine; }
