@@ -116,11 +116,6 @@ public class LibraryFullIntegrationCassandraTest extends CassandraTestBase {
         Assertions.assertNotNull(r2RentalFromDb);
         Assertions.assertEquals(RentalStatus.ACTIVE, r2RentalFromDb.getStatusEnum());
 
-        // UWAGA:
-        // W wersji Mongo tu sprawdzałeś limit wypożyczeń + race-condition.
-        // Nasza uproszczona wersja RentalService nie implementuje limitów ani transakcji,
-        // więc tę część testów pomijamy – "naginamy" logikę testową do aktualnych możliwości.
-
         // --- 9. Zwrot książki (Reader1 zwraca swój egzemplarz) ---
         rentalService.returnBook(
                 reader1.getId(),
