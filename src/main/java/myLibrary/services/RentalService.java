@@ -26,7 +26,7 @@ public class RentalService {
     }
 
     /**
-     * Proste wypożyczenie książki z użyciem CRUD (bez transakcji Mongo).
+     * Proste wypożyczenie książki z użyciem CRUD.
      */
     public Rental rent(Reader reader, BookCopy copy, LocalDate dueDate) {
 
