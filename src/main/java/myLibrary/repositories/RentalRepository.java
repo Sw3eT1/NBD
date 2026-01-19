@@ -89,7 +89,12 @@ public class RentalRepository extends MongoRepository<Rental> {
      * - aktualizuje status egzemplarza
      * - wstawia rekord wypożyczenia
      */
-    public boolean tryRent(Reader reader, BookCopy copy, LocalDate dueDate) {
+    /**
+     * Zwraca utworzone wypożyczenie (Rental) lub null jeśli wypożyczenie nie mogło zostać zrealizowane.
+     *
+     * Dzięki temu warstwa serwisowa może np. wysłać zdarzenie do Apache Kafka.
+     */
+    public Rental tryRent(Reader reader, BookCopy copy, LocalDate dueDate) {
 
         TransactionOptions txnOptions = TransactionOptions.builder()
                 .readConcern(ReadConcern.SNAPSHOT)
@@ -131,7 +136,7 @@ public class RentalRepository extends MongoRepository<Rental> {
 
                 // jeśli null → limit został osiągnięty
                 if (updatedReader == null)
-                    return false;
+                    return null;
 
                 // 🔥 atomiczne zablokowanie książki
                 Document updatedCopy = copies.findOneAndUpdate(
@@ -147,7 +152,7 @@ public class RentalRepository extends MongoRepository<Rental> {
                 if (updatedCopy == null) {
                     // wycofaj increment
                     readers.updateOne(session, eq("_id", readerId), inc("activeRentals", -1));
-                    return false;
+                    return null;
                 }
 
                 // 🔥 wstawienie wypożyczenia
@@ -163,7 +168,7 @@ public class RentalRepository extends MongoRepository<Rental> {
                         .append("dueDate", rental.getDueDate())
                 );
 
-                return true;
+                return rental;
 
             }, txnOptions);
         }

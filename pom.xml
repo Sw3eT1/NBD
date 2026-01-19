@@ -84,6 +84,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- APACHE KAFKA CLIENTS (producer/consumer) -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.7.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -129,11 +136,48 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
-                <configuration>
-                    <mainClass>myLibrary.benchmark.CacheBenchmark</mainClass>
-                    <classpathScope>test</classpathScope>
-                </configuration>
+
+                <executions>
+
+                    <!-- Domyślne uruchamianie aplikacji (producer / normalny runtime) -->
+                    <execution>
+                        <id>run-app</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>myLibrary.kafka.DemoCreateRentalAndPublishApp</mainClass>
+                            <classpathScope>runtime</classpathScope>
+                        </configuration>
+                    </execution>
+
+                    <!-- Konsument Kafka -->
+                    <execution>
+                        <id>run-kafka-consumer</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>myLibrary.kafka.RentalEventConsumerApp</mainClass>
+                            <classpathScope>runtime</classpathScope>
+                        </configuration>
+                    </execution>
+
+                    <!-- Benchmark / test Redis (to co miałeś) -->
+                    <execution>
+                        <id>run-cache-benchmark</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>myLibrary.benchmark.CacheBenchmark</mainClass>
+                            <classpathScope>test</classpathScope>
+                        </configuration>
+                    </execution>
+
+                </executions>
             </plugin>
+
 
         </plugins>
     </build>

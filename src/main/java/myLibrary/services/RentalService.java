@@ -5,8 +5,11 @@ import com.mongodb.client.model.Updates;
 import myLibrary.enums.BookStatus;
 import myLibrary.enums.RentalStatus;
 import myLibrary.models.BookCopy;
+import myLibrary.models.Library;
 import myLibrary.models.Reader;
 import myLibrary.models.Rental;
+import myLibrary.kafka.RentalEventProducer;
+import myLibrary.repositories.LibraryRepository;
 import myLibrary.repositories.BookCopyRepository;
 import myLibrary.repositories.ReaderRepository;
 import myLibrary.repositories.RentalRepository;
@@ -20,11 +23,33 @@ public class RentalService {
     private final RentalRepository rentalRepo;
     private final BookCopyRepository copyRepo;
     private final ReaderRepository readerRepo;
+    private final LibraryRepository libraryRepo;
+    private final RentalEventProducer eventProducer;
 
     public RentalService(RentalRepository rentalRepo, BookCopyRepository copyRepo, ReaderRepository readerRepo) {
         this.rentalRepo = rentalRepo;
         this.copyRepo = copyRepo;
         this.readerRepo = readerRepo;
+        this.libraryRepo = null;
+        this.eventProducer = null;
+    }
+
+    /**
+     * Konstruktor rozszerzony o integrację z Apache Kafka.
+     *
+     * @param libraryRepo repozytorium bibliotek (potrzebne do pobrania nazwy wypożyczalni)
+     * @param eventProducer producent zdarzeń (Kafka)
+     */
+    public RentalService(RentalRepository rentalRepo,
+                         BookCopyRepository copyRepo,
+                         ReaderRepository readerRepo,
+                         LibraryRepository libraryRepo,
+                         RentalEventProducer eventProducer) {
+        this.rentalRepo = rentalRepo;
+        this.copyRepo = copyRepo;
+        this.readerRepo = readerRepo;
+        this.libraryRepo = libraryRepo;
+        this.eventProducer = eventProducer;
     }
 
     /**
@@ -41,11 +66,26 @@ public class RentalService {
         if (dueDate == null)
             throw new IllegalArgumentException("Due date cannot be null");
 
-        boolean ok = rentalRepo.tryRent(reader, copy, dueDate);
+        Rental rental = rentalRepo.tryRent(reader, copy, dueDate);
 
-        if (!ok)
+        if (rental == null)
             throw new IllegalStateException("Nie można wypożyczyć książki: " +
                     "kopii brak lub limit został osiągnięty.");
+
+        // ---- Apache Kafka: wysyłamy zdarzenie o nowym wypożyczeniu ----
+        if (eventProducer != null) {
+            String libraryName = null;
+            String libraryId = null;
+            if (libraryRepo != null && copy != null && copy.getLibraryId() != null) {
+                libraryId = copy.getLibraryId();
+                Library lib = libraryRepo.findById(copy.getLibraryId());
+                if (lib != null) {
+                    libraryName = lib.getName();
+                }
+            }
+
+            eventProducer.publishNewRental(rental, libraryId, libraryName);
+        }
     }
 
     /**
