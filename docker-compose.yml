@@ -144,6 +144,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     networks: [ mongonet ]
 
   kafka2:
@@ -165,6 +166,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
     depends_on:
       - kafka1
     networks: [ mongonet ]
@@ -188,6 +191,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
     depends_on:
       - kafka1
     networks: [ mongonet ]
@@ -200,20 +205,33 @@ services:
       - kafka2
       - kafka3
     restart: "no"
-    entrypoint: [ "/bin/bash", "-lc" ]
-    command: >
-      echo "Waiting for Kafka to be ready...";
-      for i in $$(seq 1 60); do
-        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092,kafka2:9092,kafka3:9092 --list >/dev/null 2>&1 && echo "Kafka ready" && break;
-        echo "Kafka not ready yet ($$i/60)...";
-        sleep 2;
-      done;
-      echo "Creating topic wypozyczenia-rezerwacje (3 partitions, RF=3)...";
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092,kafka2:9092,kafka3:9092 --create --if-not-exists --topic wypozyczenia-rezerwacje --partitions 3 --replication-factor 3;
-      echo "Topic describe:";
-      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092,kafka2:9092,kafka3:9092 --describe --topic wypozyczenia-rezerwacje;
-      echo "DONE";
     networks: [ mongonet ]
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+
+        echo "Waiting for Kafka to be ready..."
+        for i in $(seq 1 60); do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092 --list >/dev/null 2>&1 && echo "Kafka ready" && break
+          echo "Kafka not ready yet ($i/60)..."
+          sleep 2
+        done
+
+        echo "Deleting topic if exists..."
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092 --delete --topic wypozyczenia-rezerwacje || true
+        sleep 2
+
+        echo "Creating topic (3 partitions, RF=3)..."
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092 \
+          --create --topic wypozyczenia-rezerwacje --partitions 3 --replication-factor 3
+
+        echo "Describe:"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092 \
+          --describe --topic wypozyczenia-rezerwacje
+
+        echo "DONE"
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -251,9 +269,8 @@ services:
       - "exec:java@run-kafka-consumer"
       - "-Dexec.args=consumer-group-1"
     depends_on:
-      - kafka1
-      - kafka2
-      - kafka3
+      init-kafka-topic:
+        condition: service_completed_successfully
     networks: [ mongonet ]
 
   demo-producer:
@@ -273,9 +290,8 @@ services:
       - "-DskipTests"
       - "exec:java@run-app"
     depends_on:
-      - kafka1
-      - kafka2
-      - kafka3
+        init-kafka-topic:
+          condition: service_completed_successfully
     networks: [ mongonet ]
     restart: "no"
 
